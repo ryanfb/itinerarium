@@ -1,4 +1,5 @@
 $ ?= require 'jquery' # For Node.js compatibility
+_ ?= require 'underscore'
 
 hadrian_id = 91358
 hadrian_connections = []
@@ -32,11 +33,16 @@ displayConnection = (connection) ->
 addConnection = (connection, length) ->
   $.getJSON pleiadesURL(connection), (result) ->
     hadrian_connections.push result
-    $('body').append "Added #{result.title} (#{result.id}): #{result.description}<br/>"
+    # $('body').append "Added #{result.title} (#{result.id}): #{result.description}<br/>"
     if hadrian_connections.length == length
       $('body').append "Done.<br/>"
       hadrian_connections = hadrian_connections.sort(sortByLongitude)
       displayConnection(hadrian_connections[0])
+      longitudes = _.flatten([item.bbox[0],item.bbox[2]] for item in hadrian_connections)
+      latitudes = _.flatten([item.bbox[1],item.bbox[3]] for item in hadrian_connections)
+      connections_bbox = [(Math.min longitudes...), (Math.min latitudes...), (Math.max longitudes...), (Math.max latitudes...)]
+      $('body').append connections_bbox.join(',')
+      flickrSearch(connections_bbox)
 
 $(document).ready ->
   $.getJSON pleiadesURL(hadrian_id), (result) ->
