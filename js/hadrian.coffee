@@ -1,7 +1,7 @@
 $ ?= require 'jquery' # For Node.js compatibility
 _ ?= require 'underscore'
 
-hadrian_id = 91358 # 148168
+hadrian_id = 91358
 hadrian_connections = []
 
 flickr_api_key = 'f6bca6b68d42d5a436054222be2f530e'
@@ -59,7 +59,8 @@ addConnection = (connection, length) ->
     hadrian_connections.push result
     # $('body').append "Added #{result.title} (#{result.id}): #{result.description}<br/>"
     if hadrian_connections.length == length
-      $('body').append "Done. #{length} places.<br/>"
+      hadrian_connections = (hadrian_connection for hadrian_connection in hadrian_connections when hadrian_connection.title.match(/(milecastle|turret)/i))
+      $('body').append "Done. #{hadrian_connections.length} places.<br/>"
       hadrian_connections = hadrian_connections.sort(sortByLongitude)
       longitudes = _.flatten([item.bbox[0],item.bbox[2]] for item in hadrian_connections)
       latitudes = _.flatten([item.bbox[1],item.bbox[3]] for item in hadrian_connections)
@@ -73,6 +74,13 @@ addConnection = (connection, length) ->
         mapTypeId: google.maps.MapTypeId.ROADMAP
       map = new google.maps.Map(document.getElementById("map_canvas"),map_options)
       map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(connections_bbox[1],connections_bbox[0]),new google.maps.LatLng(connections_bbox[3],connections_bbox[2])))
+      route_polyline =
+        path: (new google.maps.LatLng(item.bbox[1],item.bbox[0]) for item in hadrian_connections when bboxIsPoint(item.bbox))
+        strokeColor: "#FF0000"
+        strokeOpacity: 1.0
+        strokeWeight: 2
+      route_path = new google.maps.Polyline(route_polyline)
+      route_path.setMap(map)
 
 $(document).ready ->
   $.getJSON pleiadesURL(hadrian_id), (result) ->
