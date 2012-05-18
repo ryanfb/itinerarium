@@ -44,6 +44,7 @@ flickrSearch = (bbox) ->
   if bboxIsPoint(bbox)
     parameters.lon = bbox[0]
     parameters.lat = bbox[1]
+    parameters.radius = 0.5
   else
     parameters.bbox = bbox.join(',')
 
@@ -58,7 +59,9 @@ addConnection = (connection, length) ->
   $.getJSON pleiadesURL(connection), (result) ->
     hadrian_connections.push result
     # $('body').append "Added #{result.title} (#{result.id}): #{result.description}<br/>"
+    $('#load-progress').attr('style',"width: #{(hadrian_connections.length / length)*100}%;")
     if hadrian_connections.length == length
+      $('#load-progress-container').toggle()
       hadrian_connections = (hadrian_connection for hadrian_connection in hadrian_connections when hadrian_connection.title.match(/(milecastle|turret)/i))
       $('body').append "Done. #{hadrian_connections.length} places.<br/>"
       hadrian_connections = hadrian_connections.sort(sortByLongitude)
@@ -66,7 +69,7 @@ addConnection = (connection, length) ->
       latitudes = _.flatten([item.bbox[1],item.bbox[3]] for item in hadrian_connections)
       connections_bbox = [(Math.min longitudes...), (Math.min latitudes...), (Math.max longitudes...), (Math.max latitudes...)]
       $('body').append connections_bbox.join(',')
-      flickrMachineSearch(hadrian_connection.id) for hadrian_connection in hadrian_connections
+      # flickrMachineSearch(hadrian_connection.id) for hadrian_connection in hadrian_connections
       displayConnection(hadrian_connection) for hadrian_connection in hadrian_connections
       map_options =
         center: new google.maps.LatLng(-34.397, 150.644)
