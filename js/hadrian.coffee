@@ -30,8 +30,8 @@ flickrMachineSearch = (id) ->
     machine_tags: "pleiades:*=#{id}"
 
   $.getJSON flickr_rest_url, parameters, (data) ->
-    $('<br/>').appendTo('body')
-    $('<img/>').attr('src',flickrURL(photo)).appendTo('body') for photo in data.photos.photo
+    $('<br/>').appendTo('.container')
+    $('<img/>').attr('src',flickrURL(photo)).appendTo('.container') for photo in data.photos.photo
 
 flickrSearch = (bbox) ->
   parameters =
@@ -49,8 +49,8 @@ flickrSearch = (bbox) ->
     parameters.bbox = bbox.join(',')
 
   $.getJSON flickr_rest_url, parameters, (data) ->
-    $('<br/>').appendTo('body')
-    $('<img/>').attr('src',flickrURL(photo)).appendTo('body') for photo in data.photos.photo[0..4]
+    $('<br/>').appendTo('.container')
+    $('<img/>').attr('src',flickrURL(photo)).appendTo('.container') for photo in data.photos.photo[0..4]
 
 displayConnection = (connection) ->
   flickrSearch(connection.bbox)
@@ -63,12 +63,11 @@ addConnection = (connection, length) ->
     if hadrian_connections.length == length
       $('#load-progress-container').toggle()
       hadrian_connections = (hadrian_connection for hadrian_connection in hadrian_connections when hadrian_connection.title.match(/(milecastle|turret)/i))
-      $('body').append "Done. #{hadrian_connections.length} places.<br/>"
+      $('.container').append "Done. #{hadrian_connections.length} places.<br/>"
       hadrian_connections = hadrian_connections.sort(sortByLongitude)
       longitudes = _.flatten([item.bbox[0],item.bbox[2]] for item in hadrian_connections)
       latitudes = _.flatten([item.bbox[1],item.bbox[3]] for item in hadrian_connections)
       connections_bbox = [(Math.min longitudes...), (Math.min latitudes...), (Math.max longitudes...), (Math.max latitudes...)]
-      $('body').append connections_bbox.join(',')
       # flickrMachineSearch(hadrian_connection.id) for hadrian_connection in hadrian_connections
       displayConnection(hadrian_connection) for hadrian_connection in hadrian_connections
       map_options =
@@ -87,4 +86,6 @@ addConnection = (connection, length) ->
 
 $(document).ready ->
   $.getJSON pleiadesURL(hadrian_id), (result) ->
+    $('.container').append "<h2>#{result.title}</h2>"
+    $('.container').append "<h3>#{result.description}</h3>"
     addConnection(connection, result.connectsWith.length) for connection in result.connectsWith
