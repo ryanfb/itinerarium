@@ -39,7 +39,8 @@ flickrSearch = (bbox) ->
     method: 'flickr.photos.search'
     format: 'json'
     min_taken_date: '1800-01-01 00:00:00'
-    sort: 'interestingness-desc'
+    extras: 'geo'
+    # sort: 'interestingness-desc'
   
   if bboxIsPoint(bbox)
     parameters.lon = bbox[0]
