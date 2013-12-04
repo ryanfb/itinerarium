@@ -1,5 +1,5 @@
-$ ?= require 'jquery' # For Node.js compatibility
-_ ?= require 'underscore'
+# $ ?= require 'jquery' # For Node.js compatibility
+# _ ?= require 'underscore'
 
 hadrian_id = 91358
 hadrian_connections = []
