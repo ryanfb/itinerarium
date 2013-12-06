@@ -80,6 +80,22 @@ displayConnection = (connection) ->
   flickrSearch(connection.bbox, "#place-#{connection.id} .flickr")
   instagramSearch(connection.reprPoint[1], connection.reprPoint[0], 500, "#place-#{connection.id} .instagram")
 
+addConnectionToDropdown = (connection) ->
+  $('<li/>').attr('role','presentation').attr('id',"li-#{connection.id}").appendTo('#connections_dropdown > ul')
+  $('<a/>').attr('role','menuitem').attr('tabindex','-1').attr('href','#').text(connection.title).appendTo("#li-#{connection.id}")
+
+createDropdown = (connections) ->
+  $('<div/>').attr('class','dropdown col-md-12 clearfix').attr('id','connections_dropdown').appendTo('.container')
+    # <button class="btn dropdown-toggle sr-only" type="button" id="dropdownMenu1" data-toggle="dropdown">
+    # Dropdown
+    # <span class="caret"></span>
+  # </button>
+  $('<button/>').attr('class','btn btn-default dropdown-toggle').attr('type','button').attr('id','connections_dropdown_button').attr('data-toggle','dropdown').text("Dropdown").appendTo('#connections_dropdown')
+  $('<span/>').attr('class','caret').appendTo('#connections_dropdown > button')
+  $('<ul/>').attr('class','dropdown-menu').attr('role','menu').attr('aria-labelledby','connections_dropdown_button').appendTo('#connections_dropdown')
+  addConnectionToDropdown(connection) for connection in connections
+  # $('.dropdown-toggle').dropdown()
+
 addConnection = (connection, length) ->
   $.getJSON pleiadesURL(connection), (result) ->
     hadrian_connections.push result
@@ -94,7 +110,8 @@ addConnection = (connection, length) ->
       latitudes = _.flatten([item.bbox[1],item.bbox[3]] for item in hadrian_connections)
       connections_bbox = [(Math.min longitudes...), (Math.min latitudes...), (Math.max longitudes...), (Math.max latitudes...)]
       # flickrMachineSearch(hadrian_connection.id) for hadrian_connection in hadrian_connections
-      displayConnection(hadrian_connection) for hadrian_connection in hadrian_connections
+      # displayConnection(hadrian_connection) for hadrian_connection in hadrian_connections
+      createDropdown(hadrian_connections)
       map_options =
         center: new google.maps.LatLng(-34.397, 150.644)
         zoom: 8
