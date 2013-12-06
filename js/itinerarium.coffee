@@ -85,12 +85,12 @@ addConnectionToDropdown = (connection) ->
   $('<a/>').attr('role','menuitem').attr('tabindex','-1').attr('href','#').text(connection.title).appendTo("#li-#{connection.id}")
 
 createDropdown = (connections) ->
-  $('<div/>').attr('class','dropdown col-md-12 clearfix').attr('id','connections_dropdown').appendTo('.container')
+  $('<div/>').attr('class','dropdown').attr('id','connections_dropdown').appendTo('.container')
     # <button class="btn dropdown-toggle sr-only" type="button" id="dropdownMenu1" data-toggle="dropdown">
     # Dropdown
     # <span class="caret"></span>
   # </button>
-  $('<button/>').attr('class','btn btn-default dropdown-toggle').attr('type','button').attr('id','connections_dropdown_button').attr('data-toggle','dropdown').text("Dropdown").appendTo('#connections_dropdown')
+  $('<button/>').attr('class','btn btn-default dropdown-toggle').attr('style','width: 100%').attr('type','button').attr('id','connections_dropdown_button').attr('data-toggle','dropdown').text("Dropdown").appendTo('#connections_dropdown')
   $('<span/>').attr('class','caret').appendTo('#connections_dropdown > button')
   $('<ul/>').attr('class','dropdown-menu').attr('role','menu').attr('aria-labelledby','connections_dropdown_button').appendTo('#connections_dropdown')
   addConnectionToDropdown(connection) for connection in connections
