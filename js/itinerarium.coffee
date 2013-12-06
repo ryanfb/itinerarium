@@ -7,6 +7,9 @@ hadrian_connections = []
 flickr_api_key = 'f6bca6b68d42d5a436054222be2f530e'
 flickr_rest_url = 'http://api.flickr.com/services/rest/?jsoncallback=?'
 
+instagram_client_id = '0bb344d5e9454a8a8ac70f0b715be3d8'
+instagram_search_url = 'https://api.instagram.com/v1/media/search?'
+
 google_maps_api_key = 'AIzaSyBoQNYbbHb-MEGa4_oq83_JCLt9cKfd4vg'
 
 pleiadesURL = (id) ->
@@ -33,7 +36,18 @@ flickrMachineSearch = (id) ->
     $('<br/>').appendTo('.container')
     $('<img/>').attr('src',flickrURL(photo)).appendTo('.container') for photo in data.photos.photo
 
-flickrSearch = (bbox) ->
+instagramSearch = (lat, long, distance = 1000, selector = '.container') ->
+  parameters =
+    lat: lat
+    lng: long
+    client_id: instagram_client_id
+    distance: distance
+
+  $.getJSON instagram_search_url, parameters, (data) ->
+    # $('<br/>').appendTo('.container')
+    $('<img/>').attr('src',photo.images.thumbnail.url).appendTo(selector) for photo in data.data
+
+flickrSearch = (bbox, selector = '.container') ->
   parameters =
     api_key: flickr_api_key
     method: 'flickr.photos.search'
@@ -50,11 +64,21 @@ flickrSearch = (bbox) ->
     parameters.bbox = bbox.join(',')
 
   $.getJSON flickr_rest_url, parameters, (data) ->
-    $('<br/>').appendTo('.container')
-    $('<img/>').attr('src',flickrURL(photo)).appendTo('.container') for photo in data.photos.photo[0..4]
+    # $('<br/>').appendTo('.container')
+    $('<img/>').attr('src',flickrURL(photo)).appendTo(selector) for photo in data.photos.photo[0..4]
 
 displayConnection = (connection) ->
-  flickrSearch(connection.bbox)
+  $('<div/>').attr('id',"place-#{connection.id}").appendTo('.container')
+  $('<h4/>').text(connection.title).appendTo("#place-#{connection.id}")
+  $('<p/>').text(connection.description).appendTo("#place-#{connection.id}")
+  $('<div/>').attr('class','flickr').appendTo("#place-#{connection.id}")
+  $('<p/>').text('Flickr:').appendTo("#place-#{connection.id} .flickr")
+  $('<div/>').attr('class','instagram').appendTo("#place-#{connection.id}")
+  $('<p/>').text('Instagram:').appendTo("#place-#{connection.id} .instagram")
+  $('<br/>').appendTo('.container')
+
+  flickrSearch(connection.bbox, "#place-#{connection.id} .flickr")
+  instagramSearch(connection.reprPoint[1], connection.reprPoint[0], 500, "#place-#{connection.id} .instagram")
 
 addConnection = (connection, length) ->
   $.getJSON pleiadesURL(connection), (result) ->
