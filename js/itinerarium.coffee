@@ -12,6 +12,14 @@ instagram_search_url = 'https://api.instagram.com/v1/media/search?'
 
 google_maps_api_key = 'AIzaSyBoQNYbbHb-MEGa4_oq83_JCLt9cKfd4vg'
 
+davis_app = Davis ->
+  this.get '/#/place/:place_id', (req) ->
+    console.log(req.params['place_id'])
+    connection = _.find hadrian_connections, (connection) ->
+      connection.id == req.params['place_id']
+    console.log(connection)
+    displayConnection(connection)
+
 pleiadesURL = (id) ->
   'http://pleiades.stoa.org/places/' + id + '/json'
 
@@ -82,7 +90,7 @@ displayConnection = (connection) ->
 
 addConnectionToDropdown = (connection) ->
   $('<li/>').attr('role','presentation').attr('id',"li-#{connection.id}").appendTo('#connections_dropdown > ul')
-  $('<a/>').attr('role','menuitem').attr('tabindex','-1').attr('href',"##{connection.id}").text(connection.title).appendTo("#li-#{connection.id}")
+  $('<a/>').attr('role','menuitem').attr('tabindex','-1').attr('href',"#/place/#{connection.id}").text(connection.title).appendTo("#li-#{connection.id}")
 
 createDropdown = (connections) ->
   $('<div/>').attr('class','dropdown').attr('id','connections_dropdown').appendTo('.container')
@@ -126,3 +134,5 @@ $(document).ready ->
     $('.container').append "<h2>#{result.title}</h2>"
     $('.container').append "<h3>#{result.description}</h3>"
     addConnection(connection, result.connectsWith.length) for connection in result.connectsWith
+  
+  davis_app.start()
