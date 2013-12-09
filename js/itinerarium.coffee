@@ -11,6 +11,8 @@ instagram_client_id = '0bb344d5e9454a8a8ac70f0b715be3d8'
 instagram_search_url = 'https://api.instagram.com/v1/media/search?'
 
 google_maps_api_key = 'AIzaSyBoQNYbbHb-MEGa4_oq83_JCLt9cKfd4vg'
+google_map = null
+google_map_marker = null
 
 pleiades_url = 'http://pleiades.stoa.org/places/'
 
@@ -107,7 +109,20 @@ displayPrevNextButtons = ->
   # <a href="#" class="btn btn-primary btn-lg active" role="button">Primary link</a>
   $('<a/>').attr('class','btn btn-primary btn-lg').attr('role','button').attr('href',"#/connection/#{parseInt(current_connection) + 1}").text("Next").appendTo('.connection-container')
 
+displayConnectionMarker = (connection) ->
+  marker_options =
+    position: new google.maps.LatLng(connection.reprPoint[1], connection.reprPoint[0])
+    map: google_map
+    title: connection.title
+
+  if google_map_marker != null
+    google_map_marker.setMap(null)
+    google_map_marker = null
+
+  google_map_marker = new google.maps.Marker(marker_options)
+
 displayConnection = (connection) ->
+  displayConnectionMarker(connection)
   $('.connection-container').remove()
   $('#connections_dropdown_button').text(connection.title)
   $('<div/>').attr('class','connection-container').attr('id',"place-#{connection.id}").appendTo('.container')
@@ -153,15 +168,15 @@ postConnectionsLoad = ->
     center: new google.maps.LatLng(-34.397, 150.644)
     zoom: 8
     mapTypeId: google.maps.MapTypeId.ROADMAP
-  map = new google.maps.Map(document.getElementById("map_canvas"),map_options)
-  map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(connections_bbox[1],connections_bbox[0]),new google.maps.LatLng(connections_bbox[3],connections_bbox[2])))
+  google_map = new google.maps.Map(document.getElementById("map_canvas"),map_options)
+  google_map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(connections_bbox[1],connections_bbox[0]),new google.maps.LatLng(connections_bbox[3],connections_bbox[2])))
   route_polyline =
     path: (new google.maps.LatLng(item.bbox[1],item.bbox[0]) for item in hadrian_connections when bboxIsPoint(item.bbox))
     strokeColor: "#FF0000"
     strokeOpacity: 1.0
     strokeWeight: 2
   route_path = new google.maps.Polyline(route_polyline)
-  route_path.setMap(map)
+  route_path.setMap(google_map)
   if Davis.location.current() == '/'
     Davis.location.assign(new Davis.Request("/#/place/#{hadrian_connections[0].id}"));
 
@@ -171,7 +186,7 @@ addConnection = (connection, length) ->
     $('#load-progress').attr('style',"width: #{(hadrian_connections.length / length)*100}%;")
     if hadrian_connections.length == length
       postConnectionsLoad()
-      
+
 $(document).ready ->  
   davis_app.start()
   davis_app.lookupRoute('get', '/').run(new Davis.Request('/'))
