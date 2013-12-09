@@ -16,6 +16,8 @@ pleiades_url = 'http://pleiades.stoa.org/places/'
 
 itinerary_loaded = false
 
+current_connection = 0
+
 loadItinerary = ->
   unless itinerary_loaded
     $.getJSON pleiadesURL(hadrian_id), (result) ->
@@ -28,6 +30,10 @@ davis_app = Davis ->
   this.get '/', (req) ->
     console.log("GET /")
     loadItinerary()
+  this.get '/#/connection/:connection_id', (req) ->
+    loadItinerary()
+    current_connection = req.params['connection_id']
+    displayConnection(hadrian_connections[current_connection])
   this.get '/#/place/:place_id', (req) ->
     loadItinerary()
     console.log(req.params['place_id'])
@@ -97,6 +103,10 @@ flickrSearch = (bbox, selector = '.container') ->
     else
       $('<img/>').attr('src',flickrURL(photo)).appendTo(selector) for photo in data.photos.photo
 
+displayPrevNextButtons = ->
+  # <a href="#" class="btn btn-primary btn-lg active" role="button">Primary link</a>
+  $('<a/>').attr('class','btn btn-primary btn-lg').attr('role','button').attr('href',"#/connection/#{parseInt(current_connection) + 1}").text("Next").appendTo('.connection-container')
+
 displayConnection = (connection) ->
   $('.connection-container').remove()
   $('#connections_dropdown_button').text(connection.title)
@@ -116,6 +126,8 @@ displayConnection = (connection) ->
   flickrMachineSearch(connection.id, "#place-#{connection.id} .flickr-machine")
   flickrSearch(connection.bbox, "#place-#{connection.id} .flickr-geo")
   instagramSearch(connection.reprPoint[1], connection.reprPoint[0], 500, "#place-#{connection.id} .instagram")
+
+  displayPrevNextButtons()
 
 addConnectionToDropdown = (connection) ->
   $('<li/>').attr('role','presentation').attr('id',"li-#{connection.id}").appendTo('#connections_dropdown > ul')
