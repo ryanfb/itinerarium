@@ -105,6 +105,27 @@ flickrSearch = (bbox, selector = '.container') ->
     else
       $('<img/>').attr('src',flickrURL(photo)).appendTo(selector) for photo in data.photos.photo
 
+# http://www.movable-type.co.uk/scripts/latlong.html
+calculateDistance = (lat1, lon1, lat2, lon2) ->
+  R = 6371 # km
+  dLat = (lat2-lat1) * Math.PI / 180
+  dLon = (lon2-lon1) * Math.PI / 180
+  lat1 = lat1 * Math.PI / 180
+  lat2 = lat2 * Math.PI / 180
+
+  a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2)
+  c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+  d = R * c
+
+displayDistance = ->
+  if current_connection != 0
+    distance = calculateDistance(hadrian_connections[current_connection].reprPoint[1],hadrian_connections[current_connection].reprPoint[0],hadrian_connections[current_connection - 1].reprPoint[1],hadrian_connections[current_connection - 1].reprPoint[0])
+    $('<em/>').text("#{distance.toFixed(2)}km from #{hadrian_connections[current_connection - 1].title}.").append($('<br/>')).appendTo('.connection-container')
+  if current_connection != (hadrian_connections.length - 1)
+    distance = calculateDistance(hadrian_connections[current_connection].reprPoint[1],hadrian_connections[current_connection].reprPoint[0],hadrian_connections[current_connection + 1].reprPoint[1],hadrian_connections[current_connection + 1].reprPoint[0])
+    $('<em/>').text("#{distance.toFixed(2)}km to #{hadrian_connections[current_connection + 1].title}.").append($('<br/>')).appendTo('.connection-container')
+  $('<br/>').appendTo('.connection-container')
+
 displayPrevNextButtons = ->
   $('#prev-next-container').empty()
   $('<br/>').appendTo('#prev-next-container')
@@ -137,14 +158,15 @@ displayConnection = (connection) ->
   $('<h4/>').appendTo("#place-#{connection.id}")
   $('<a/>').attr('href',"#{pleiades_url}#{connection.id}").attr('target','_blank').text(connection.title).appendTo("#place-#{connection.id} h4")
   $('<p/>').text(connection.description).appendTo("#place-#{connection.id}")
+  displayDistance()
   $('<div/>').attr('class','flickr-machine').appendTo("#place-#{connection.id}")
-  $('<p/>').text('Flickr Machine Tags:').appendTo("#place-#{connection.id} .flickr-machine")
+  $('<h5/>').text('Flickr Machine Tags:').appendTo("#place-#{connection.id} .flickr-machine")
   $('<br/>').appendTo("#place-#{connection.id}")
   $('<div/>').attr('class','flickr-geo').appendTo("#place-#{connection.id}")
-  $('<p/>').text('Flickr Geo Search:').appendTo("#place-#{connection.id} .flickr-geo")
+  $('<h5/>').text('Flickr Geo Search:').appendTo("#place-#{connection.id} .flickr-geo")
   $('<br/>').appendTo("#place-#{connection.id}")
   $('<div/>').attr('class','instagram').appendTo("#place-#{connection.id}")
-  $('<p/>').text('Instagram:').appendTo("#place-#{connection.id} .instagram")
+  $('<h5/>').text('Instagram:').appendTo("#place-#{connection.id} .instagram")
 
   flickrMachineSearch(connection.id, "#place-#{connection.id} .flickr-machine")
   flickrSearch(connection.bbox, "#place-#{connection.id} .flickr-geo")
