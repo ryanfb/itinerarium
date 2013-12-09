@@ -140,35 +140,38 @@ createDropdown = (connections) ->
   $('<ul/>').attr('class','dropdown-menu').attr('role','menu').attr('aria-labelledby','connections_dropdown_button').appendTo('#connections_dropdown')
   addConnectionToDropdown(connection) for connection in connections
 
+postConnectionsLoad = ->
+  $('#load-progress-container').toggle()
+  hadrian_connections = (hadrian_connection for hadrian_connection in hadrian_connections when hadrian_connection.title.match(/(milecastle|turret)/i))
+  $('.container').append "Done. #{hadrian_connections.length} places.<br/>"
+  hadrian_connections = hadrian_connections.sort(sortByLongitude)
+  longitudes = _.flatten([item.bbox[0],item.bbox[2]] for item in hadrian_connections)
+  latitudes = _.flatten([item.bbox[1],item.bbox[3]] for item in hadrian_connections)
+  connections_bbox = [(Math.min longitudes...), (Math.min latitudes...), (Math.max longitudes...), (Math.max latitudes...)]
+  createDropdown(hadrian_connections)
+  map_options =
+    center: new google.maps.LatLng(-34.397, 150.644)
+    zoom: 8
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+  map = new google.maps.Map(document.getElementById("map_canvas"),map_options)
+  map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(connections_bbox[1],connections_bbox[0]),new google.maps.LatLng(connections_bbox[3],connections_bbox[2])))
+  route_polyline =
+    path: (new google.maps.LatLng(item.bbox[1],item.bbox[0]) for item in hadrian_connections when bboxIsPoint(item.bbox))
+    strokeColor: "#FF0000"
+    strokeOpacity: 1.0
+    strokeWeight: 2
+  route_path = new google.maps.Polyline(route_polyline)
+  route_path.setMap(map)
+  if Davis.location.current() == '/'
+    Davis.location.assign(new Davis.Request("/#/place/#{hadrian_connections[0].id}"));
+
 addConnection = (connection, length) ->
   $.getJSON pleiadesURL(connection), (result) ->
     hadrian_connections.push result
     $('#load-progress').attr('style',"width: #{(hadrian_connections.length / length)*100}%;")
     if hadrian_connections.length == length
-      $('#load-progress-container').toggle()
-      hadrian_connections = (hadrian_connection for hadrian_connection in hadrian_connections when hadrian_connection.title.match(/(milecastle|turret)/i))
-      $('.container').append "Done. #{hadrian_connections.length} places.<br/>"
-      hadrian_connections = hadrian_connections.sort(sortByLongitude)
-      longitudes = _.flatten([item.bbox[0],item.bbox[2]] for item in hadrian_connections)
-      latitudes = _.flatten([item.bbox[1],item.bbox[3]] for item in hadrian_connections)
-      connections_bbox = [(Math.min longitudes...), (Math.min latitudes...), (Math.max longitudes...), (Math.max latitudes...)]
-      createDropdown(hadrian_connections)
-      map_options =
-        center: new google.maps.LatLng(-34.397, 150.644)
-        zoom: 8
-        mapTypeId: google.maps.MapTypeId.ROADMAP
-      map = new google.maps.Map(document.getElementById("map_canvas"),map_options)
-      map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(connections_bbox[1],connections_bbox[0]),new google.maps.LatLng(connections_bbox[3],connections_bbox[2])))
-      route_polyline =
-        path: (new google.maps.LatLng(item.bbox[1],item.bbox[0]) for item in hadrian_connections when bboxIsPoint(item.bbox))
-        strokeColor: "#FF0000"
-        strokeOpacity: 1.0
-        strokeWeight: 2
-      route_path = new google.maps.Polyline(route_polyline)
-      route_path.setMap(map)
-      if Davis.location.current() == '/'
-        Davis.location.assign(new Davis.Request("/#/place/#{hadrian_connections[0].id}"));
-
+      postConnectionsLoad()
+      
 $(document).ready ->  
   davis_app.start()
   davis_app.lookupRoute('get', '/').run(new Davis.Request('/'))
