@@ -106,9 +106,11 @@ flickrSearch = (bbox, selector = '.container') ->
       $('<img/>').attr('src',flickrURL(photo)).appendTo(selector) for photo in data.photos.photo
 
 displayPrevNextButtons = ->
-  $('<a/>').attr('id','prev-button').attr('class','btn btn-primary btn-lg').attr('role','button').attr('href',"#/connection/#{parseInt(current_connection) - 1}").text("Prev").appendTo('.connection-container')
-  $('.connection-container').append(' ')
-  $('<a/>').attr('id','next-button').attr('class','btn btn-primary btn-lg').attr('role','button').attr('href',"#/connection/#{parseInt(current_connection) + 1}").text("Next").appendTo('.connection-container')
+  $('#prev-next-container').empty()
+  $('<br/>').appendTo('#prev-next-container')
+  $('<a/>').attr('id','prev-button').attr('class','btn btn-primary btn-lg').attr('role','button').attr('href',"#/connection/#{parseInt(current_connection) - 1}").text("Prev").appendTo('#prev-next-container')
+  $('#prev-next-container').append(' ')
+  $('<a/>').attr('id','next-button').attr('class','btn btn-primary btn-lg').attr('role','button').attr('href',"#/connection/#{parseInt(current_connection) + 1}").text("Next").appendTo('#prev-next-container')
 
   if current_connection == 0
     $('#prev-button').attr('disabled','disabled')
@@ -171,6 +173,7 @@ postConnectionsLoad = ->
   latitudes = _.flatten([item.bbox[1],item.bbox[3]] for item in hadrian_connections)
   connections_bbox = [(Math.min longitudes...), (Math.min latitudes...), (Math.max longitudes...), (Math.max latitudes...)]
   createDropdown(hadrian_connections)
+  $('<div/>').attr('id','prev-next-container').appendTo('.container')
   map_options =
     center: new google.maps.LatLng(-34.397, 150.644)
     zoom: 8
