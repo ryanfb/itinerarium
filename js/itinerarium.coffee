@@ -34,7 +34,7 @@ davis_app = Davis ->
     loadItinerary()
   this.get '/#/connection/:connection_id', (req) ->
     loadItinerary()
-    current_connection = req.params['connection_id']
+    current_connection = parseInt(req.params['connection_id'])
     displayConnection(hadrian_connections[current_connection])
   this.get '/#/place/:place_id', (req) ->
     loadItinerary()
@@ -106,8 +106,14 @@ flickrSearch = (bbox, selector = '.container') ->
       $('<img/>').attr('src',flickrURL(photo)).appendTo(selector) for photo in data.photos.photo
 
 displayPrevNextButtons = ->
-  # <a href="#" class="btn btn-primary btn-lg active" role="button">Primary link</a>
-  $('<a/>').attr('class','btn btn-primary btn-lg').attr('role','button').attr('href',"#/connection/#{parseInt(current_connection) + 1}").text("Next").appendTo('.connection-container')
+  $('<a/>').attr('id','prev-button').attr('class','btn btn-primary btn-lg').attr('role','button').attr('href',"#/connection/#{parseInt(current_connection) - 1}").text("Prev").appendTo('.connection-container')
+  $('.connection-container').append(' ')
+  $('<a/>').attr('id','next-button').attr('class','btn btn-primary btn-lg').attr('role','button').attr('href',"#/connection/#{parseInt(current_connection) + 1}").text("Next").appendTo('.connection-container')
+
+  if current_connection == 0
+    $('#prev-button').attr('disabled','disabled')
+  else if current_connection == (hadrian_connections.length - 1)
+    $('#next-button').attr('disabled','disabled')
 
 displayConnectionMarker = (connection) ->
   marker_options =
@@ -144,16 +150,17 @@ displayConnection = (connection) ->
 
   displayPrevNextButtons()
 
-addConnectionToDropdown = (connection) ->
+addConnectionToDropdown = (connection_index) ->
+  connection = hadrian_connections[connection_index]
   $('<li/>').attr('role','presentation').attr('id',"li-#{connection.id}").appendTo('#connections_dropdown > ul')
-  $('<a/>').attr('role','menuitem').attr('tabindex','-1').attr('href',"#/place/#{connection.id}").text(connection.title).appendTo("#li-#{connection.id}")
+  $('<a/>').attr('role','menuitem').attr('tabindex','-1').attr('href',"#/connection/#{connection_index}").text(connection.title).appendTo("#li-#{connection.id}")
 
 createDropdown = (connections) ->
   $('<div/>').attr('class','dropdown').attr('id','connections_dropdown').appendTo('.container')
   $('<button/>').attr('class','btn btn-default dropdown-toggle').attr('style','width: 100%').attr('type','button').attr('id','connections_dropdown_button').attr('data-toggle','dropdown').appendTo('#connections_dropdown')
   $('<span/>').attr('class','caret').appendTo('#connections_dropdown > button')
   $('<ul/>').attr('class','dropdown-menu').attr('role','menu').attr('aria-labelledby','connections_dropdown_button').appendTo('#connections_dropdown')
-  addConnectionToDropdown(connection) for connection in connections
+  addConnectionToDropdown(connection_index) for connection_index in [0...connections.length]
 
 postConnectionsLoad = ->
   $('#load-progress-container').toggle()
@@ -178,7 +185,7 @@ postConnectionsLoad = ->
   route_path = new google.maps.Polyline(route_polyline)
   route_path.setMap(google_map)
   if Davis.location.current() == '/'
-    Davis.location.assign(new Davis.Request("/#/place/#{hadrian_connections[0].id}"));
+    Davis.location.assign(new Davis.Request("/#/connection/0"));
 
 addConnection = (connection, length) ->
   $.getJSON pleiadesURL(connection), (result) ->
