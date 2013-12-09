@@ -25,7 +25,6 @@ loadItinerary = ->
       itinerary_loaded = true
 
 davis_app = Davis ->
-  # this.settings.generateRequestOnPageLoad = true
   this.get '/', (req) ->
     console.log("GET /")
     loadItinerary()
@@ -58,7 +57,6 @@ flickrMachineSearch = (id) ->
     machine_tags: "pleiades:*=#{id}"
 
   $.getJSON flickr_rest_url, parameters, (data) ->
-    # $('<br/>').appendTo('.container')
     $('<img/>').attr('src',flickrURL(photo)).appendTo('.container') for photo in data.photos.photo
 
 instagramSearch = (lat, long, distance = 1000, selector = '.container') ->
@@ -69,7 +67,6 @@ instagramSearch = (lat, long, distance = 1000, selector = '.container') ->
     distance: distance
 
   $.getJSON instagram_search_url, parameters, (data) ->
-    # $('<br/>').appendTo('.container')
     $('<img/>').attr('src',photo.images.thumbnail.url).appendTo(selector) for photo in data.data
 
 flickrSearch = (bbox, selector = '.container') ->
@@ -89,7 +86,6 @@ flickrSearch = (bbox, selector = '.container') ->
     parameters.bbox = bbox.join(',')
 
   $.getJSON flickr_rest_url, parameters, (data) ->
-    # $('<br/>').appendTo('.container')
     $('<img/>').attr('src',flickrURL(photo)).appendTo(selector) for photo in data.photos.photo[0..4]
 
 displayConnection = (connection) ->
@@ -104,8 +100,8 @@ displayConnection = (connection) ->
   $('<br/>').appendTo("#place-#{connection.id}")
   $('<div/>').attr('class','instagram').appendTo("#place-#{connection.id}")
   $('<p/>').text('Instagram:').appendTo("#place-#{connection.id} .instagram")
-  # $('<br/>').appendTo('.container')
 
+  # flickrMachineSearch(connection.id)
   flickrSearch(connection.bbox, "#place-#{connection.id} .flickr")
   instagramSearch(connection.reprPoint[1], connection.reprPoint[0], 500, "#place-#{connection.id} .instagram")
 
@@ -123,7 +119,6 @@ createDropdown = (connections) ->
 addConnection = (connection, length) ->
   $.getJSON pleiadesURL(connection), (result) ->
     hadrian_connections.push result
-    # $('body').append "Added #{result.title} (#{result.id}): #{result.description}<br/>"
     $('#load-progress').attr('style',"width: #{(hadrian_connections.length / length)*100}%;")
     if hadrian_connections.length == length
       $('#load-progress-container').toggle()
@@ -133,8 +128,6 @@ addConnection = (connection, length) ->
       longitudes = _.flatten([item.bbox[0],item.bbox[2]] for item in hadrian_connections)
       latitudes = _.flatten([item.bbox[1],item.bbox[3]] for item in hadrian_connections)
       connections_bbox = [(Math.min longitudes...), (Math.min latitudes...), (Math.max longitudes...), (Math.max latitudes...)]
-      # flickrMachineSearch(hadrian_connection.id) for hadrian_connection in hadrian_connections
-      # displayConnection(hadrian_connection) for hadrian_connection in hadrian_connections
       createDropdown(hadrian_connections)
       map_options =
         center: new google.maps.LatLng(-34.397, 150.644)
@@ -149,11 +142,8 @@ addConnection = (connection, length) ->
         strokeWeight: 2
       route_path = new google.maps.Polyline(route_polyline)
       route_path.setMap(map)
-      # displayConnection(hadrian_connections[0])
       if Davis.location.current() == '/'
         Davis.location.assign(new Davis.Request("/#/place/#{hadrian_connections[0].id}"));
-      # davis_app.lookupRoute('get','/#/place/:place_id').run(new Davis.Request("/#/place/#{hadrian_connections[0].id}"))
-      # document.location.href += "#/place/#{hadrian_connections[0].id}"
 
 $(document).ready ->  
   davis_app.start()
