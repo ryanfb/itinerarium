@@ -12,6 +12,8 @@ instagram_search_url = 'https://api.instagram.com/v1/media/search?'
 
 google_maps_api_key = 'AIzaSyBoQNYbbHb-MEGa4_oq83_JCLt9cKfd4vg'
 
+pleiades_url = 'http://pleiades.stoa.org/places/'
+
 davis_app = Davis ->
   this.get '/#/place/:place_id', (req) ->
     console.log(req.params['place_id'])
@@ -21,7 +23,7 @@ davis_app = Davis ->
     displayConnection(connection)
 
 pleiadesURL = (id) ->
-  'http://pleiades.stoa.org/places/' + id + '/json'
+  pleiades_url + id + '/json'
 
 sortByLongitude = (a, b) ->
   a.reprPoint[0] - b.reprPoint[0]
@@ -76,11 +78,14 @@ flickrSearch = (bbox, selector = '.container') ->
     $('<img/>').attr('src',flickrURL(photo)).appendTo(selector) for photo in data.photos.photo[0..4]
 
 displayConnection = (connection) ->
-  $('<div/>').attr('id',"place-#{connection.id}").appendTo('.container')
-  $('<h4/>').text(connection.title).appendTo("#place-#{connection.id}")
+  $('.connection-container').remove()
+  $('<div/>').attr('class','connection-container').attr('id',"place-#{connection.id}").appendTo('.container')
+  $('<h4/>').appendTo("#place-#{connection.id}")
+  $('<a/>').attr('href',"#{pleiades_url}#{connection.id}").attr('target','_blank').text(connection.title).appendTo("#place-#{connection.id} h4")
   $('<p/>').text(connection.description).appendTo("#place-#{connection.id}")
   $('<div/>').attr('class','flickr').appendTo("#place-#{connection.id}")
   $('<p/>').text('Flickr:').appendTo("#place-#{connection.id} .flickr")
+  $('<br/>').appendTo("#place-#{connection.id}")
   $('<div/>').attr('class','instagram').appendTo("#place-#{connection.id}")
   $('<p/>').text('Instagram:').appendTo("#place-#{connection.id} .instagram")
   $('<br/>').appendTo('.container')
