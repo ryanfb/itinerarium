@@ -48,7 +48,7 @@ flickrURL = (photo) ->
 bboxIsPoint = (bbox) ->
   (bbox[0] == bbox[2]) && (bbox[1] == bbox[3])
 
-flickrMachineSearch = (id) ->
+flickrMachineSearch = (id, selector = '.container') ->
   parameters =
     api_key: flickr_api_key
     method: 'flickr.photos.search'
@@ -57,7 +57,10 @@ flickrMachineSearch = (id) ->
     machine_tags: "pleiades:*=#{id}"
 
   $.getJSON flickr_rest_url, parameters, (data) ->
-    $('<img/>').attr('src',flickrURL(photo)).appendTo('.container') for photo in data.photos.photo
+    if data.photos.photo.length == 0
+      $('<p/>').text('No results found.').appendTo(selector)
+    else
+      $('<img/>').attr('src',flickrURL(photo)).appendTo(selector) for photo in data.photos.photo
 
 instagramSearch = (lat, long, distance = 1000, selector = '.container') ->
   parameters =
@@ -67,7 +70,10 @@ instagramSearch = (lat, long, distance = 1000, selector = '.container') ->
     distance: distance
 
   $.getJSON instagram_search_url, parameters, (data) ->
-    $('<img/>').attr('src',photo.images.thumbnail.url).appendTo(selector) for photo in data.data
+    if data.data.length == 0
+      $('<p/>').text('No results found.').appendTo(selector)
+    else
+      $('<img/>').attr('src',photo.images.thumbnail.url).appendTo(selector) for photo in data.data
 
 flickrSearch = (bbox, selector = '.container') ->
   parameters =
@@ -86,7 +92,10 @@ flickrSearch = (bbox, selector = '.container') ->
     parameters.bbox = bbox.join(',')
 
   $.getJSON flickr_rest_url, parameters, (data) ->
-    $('<img/>').attr('src',flickrURL(photo)).appendTo(selector) for photo in data.photos.photo[0..4]
+    if data.photos.photo.length == 0
+      $('<p/>').text('No results found.').appendTo(selector)
+    else
+      $('<img/>').attr('src',flickrURL(photo)).appendTo(selector) for photo in data.photos.photo
 
 displayConnection = (connection) ->
   $('.connection-container').remove()
@@ -95,14 +104,17 @@ displayConnection = (connection) ->
   $('<h4/>').appendTo("#place-#{connection.id}")
   $('<a/>').attr('href',"#{pleiades_url}#{connection.id}").attr('target','_blank').text(connection.title).appendTo("#place-#{connection.id} h4")
   $('<p/>').text(connection.description).appendTo("#place-#{connection.id}")
-  $('<div/>').attr('class','flickr').appendTo("#place-#{connection.id}")
-  $('<p/>').text('Flickr:').appendTo("#place-#{connection.id} .flickr")
+  $('<div/>').attr('class','flickr-machine').appendTo("#place-#{connection.id}")
+  $('<p/>').text('Flickr Machine Tags:').appendTo("#place-#{connection.id} .flickr-machine")
+  $('<br/>').appendTo("#place-#{connection.id}")
+  $('<div/>').attr('class','flickr-geo').appendTo("#place-#{connection.id}")
+  $('<p/>').text('Flickr Geo Search:').appendTo("#place-#{connection.id} .flickr-geo")
   $('<br/>').appendTo("#place-#{connection.id}")
   $('<div/>').attr('class','instagram').appendTo("#place-#{connection.id}")
   $('<p/>').text('Instagram:').appendTo("#place-#{connection.id} .instagram")
 
-  # flickrMachineSearch(connection.id)
-  flickrSearch(connection.bbox, "#place-#{connection.id} .flickr")
+  flickrMachineSearch(connection.id, "#place-#{connection.id} .flickr-machine")
+  flickrSearch(connection.bbox, "#place-#{connection.id} .flickr-geo")
   instagramSearch(connection.reprPoint[1], connection.reprPoint[0], 500, "#place-#{connection.id} .instagram")
 
 addConnectionToDropdown = (connection) ->
