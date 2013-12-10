@@ -276,7 +276,7 @@ postConnectionsLoad = ->
   itinerary_connections = []
   for place in itinerary_places
     matching_connection = _.find(unordered_itinerary_connections, (connection) -> parseInt(connection.id) == parseInt(place))
-    unless matching_connection.bbox == null
+    if matching_connection && matching_connection.bbox
       itinerary_connections.push(matching_connection) 
   longitudes = _.flatten([item.bbox[0],item.bbox[2]] for item in itinerary_connections)
   latitudes = _.flatten([item.bbox[1],item.bbox[3]] for item in itinerary_connections)
