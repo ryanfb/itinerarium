@@ -13,6 +13,7 @@ instagram_search_url = 'https://api.instagram.com/v1/media/search?'
 google_maps_api_key = 'AIzaSyBoQNYbbHb-MEGa4_oq83_JCLt9cKfd4vg'
 google_map = null
 google_map_marker = null
+google_map_rectangle = null
 
 pleiades_url = 'http://pleiades.stoa.org/places/'
 
@@ -163,17 +164,12 @@ displayPrevNextButtons = ->
     $('#next-button').attr('disabled','disabled')
 
 displayConnectionMarker = (connection) ->
-  if google_map_marker != null
-    google_map_marker.setMap(null)
-    google_map_marker = null
+  for marker in [google_map_marker, google_map_rectangle]
+    if marker != null
+      marker.setMap(null)
+      marker = null
 
-  if bboxIsPoint(connection.bbox)
-    marker_options =
-      position: new google.maps.LatLng(connection.reprPoint[1], connection.reprPoint[0])
-      map: google_map
-      title: connection.title
-    google_map_marker = new google.maps.Marker(marker_options)
-  else
+  unless bboxIsPoint(connection.bbox)
     rectangle_options =
       strokeWeight: 2
       strokeColor: '#FF0000'
@@ -182,7 +178,13 @@ displayConnectionMarker = (connection) ->
       fillOpacity: 0.35
       map: google_map
       bounds: new google.maps.LatLngBounds(new google.maps.LatLng(connection.bbox[1],connection.bbox[0]),new google.maps.LatLng(connection.bbox[3],connection.bbox[2]))
-    google_map_marker = new google.maps.Rectangle(rectangle_options)
+    google_map_rectangle = new google.maps.Rectangle(rectangle_options)
+
+  marker_options =
+    position: new google.maps.LatLng(connection.reprPoint[1], connection.reprPoint[0])
+    map: google_map
+    title: connection.title
+  google_map_marker = new google.maps.Marker(marker_options)
 
 displayConnection = (connection) ->
   displayConnectionMarker(connection)
