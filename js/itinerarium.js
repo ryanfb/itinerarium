@@ -112,10 +112,10 @@
       }
     });
     this.get("" + window.location.pathname + "#/itinerary/:itinerary", function(req) {
-      return Davis.location.assign(new Davis.Request("#/itinerary/" + req.params['itinerary'] + "/connection/0"));
+      return Davis.location.assign(new Davis.Request("" + window.location.pathname + "#/itinerary/" + req.params['itinerary'] + "/connection/0"));
     });
     this.get("" + window.location.pathname + "#/itinerary_url/:itinerary_url", function(req) {
-      return Davis.location.assign(new Davis.Request("#/itinerary_url/" + req.params['itinerary_url'] + "/connection/0"));
+      return Davis.location.assign(new Davis.Request("" + window.location.pathname + "#/itinerary_url/" + req.params['itinerary_url'] + "/connection/0"));
     });
     this.get('#/itinerary/:itinerary/connection/:connection_id', itineraryHandler);
     this.get("" + window.location.pathname + "#/itinerary/:itinerary/connection/:connection_id", itineraryHandler);
@@ -124,7 +124,11 @@
   });
 
   pleiadesURL = function(id) {
-    return pleiades_url + id + '/json';
+    if (window.location.hostname === 'ryanfb.github.io') {
+      return 'http://ryanfb.github.io/pleiades-geojson/geojson/' + id + '.geojson';
+    } else {
+      return pleiades_url + id + '/json';
+    }
   };
 
   sortByLongitude = function(a, b) {

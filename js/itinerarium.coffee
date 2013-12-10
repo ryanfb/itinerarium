@@ -70,16 +70,19 @@ davis_app = Davis ->
         $('<a/>').attr('href',"#/itinerary_url/#{encodeURIComponent(window.location.pathname)}itineraries%2F#{itinerary.path}.json").text(itinerary.title).appendTo('#known-itinerary-list')
         $('<br/>').appendTo('#known-itinerary-list')
   this.get "#{window.location.pathname}#/itinerary/:itinerary", (req) ->
-    Davis.location.assign(new Davis.Request("#/itinerary/#{req.params['itinerary']}/connection/0"))
+    Davis.location.assign(new Davis.Request("#{window.location.pathname}#/itinerary/#{req.params['itinerary']}/connection/0"))
   this.get "#{window.location.pathname}#/itinerary_url/:itinerary_url", (req) ->
-    Davis.location.assign(new Davis.Request("#/itinerary_url/#{req.params['itinerary_url']}/connection/0"))
+    Davis.location.assign(new Davis.Request("#{window.location.pathname}#/itinerary_url/#{req.params['itinerary_url']}/connection/0"))
   this.get '#/itinerary/:itinerary/connection/:connection_id', itineraryHandler
   this.get "#{window.location.pathname}#/itinerary/:itinerary/connection/:connection_id", itineraryHandler
   this.get '#/itinerary_url/:itinerary_url/connection/:connection_id', itineraryURLHandler
   this.get "#{window.location.pathname}#/itinerary_url/:itinerary_url/connection/:connection_id", itineraryURLHandler
 
 pleiadesURL = (id) ->
-  pleiades_url + id + '/json'
+  if window.location.hostname == 'ryanfb.github.io'
+    'http://ryanfb.github.io/pleiades-geojson/geojson/' + id + '.geojson'
+  else
+    pleiades_url + id + '/json'
 
 sortByLongitude = (a, b) ->
   a.reprPoint[0] - b.reprPoint[0]
