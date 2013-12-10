@@ -1,8 +1,12 @@
 # $ ?= require 'jquery' # For Node.js compatibility
 # _ ?= require 'underscore'
 
-itinerary_id = 91358
+itinerary_id = null # 91358
+itinerary_places = []
 itinerary_connections = []
+itinerary_url = null
+
+# https%3A%2F%2Fgist.github.com%2Fryanfb%2Ff2b7f74068b4fc8bea48%2Fraw%2F8aa4a709f8837d4cf6d44f0bfa24e30aeac1e487%2Fhadrian_partial.json
 
 flickr_api_key = 'f6bca6b68d42d5a436054222be2f530e'
 flickr_rest_url = 'http://api.flickr.com/services/rest/?jsoncallback=?'
@@ -23,16 +27,39 @@ current_connection = 0
 
 loadItinerary = ->
   unless itinerary_loaded
-    $.getJSON pleiadesURL(itinerary_id), (result) ->
-      $('.container').append "<h2>#{result.title}</h2>"
-      $('.container').append "<h3>#{result.description}</h3>"
-      addConnection(connection, result.connectsWith.length) for connection in result.connectsWith
-      itinerary_loaded = true
+    itinerary_loaded = true
+    addConnection(connection, itinerary_places.length) for connection in itinerary_places
+    # else
+      # $.getJSON pleiadesURL(itinerary_id), (result) ->
+        # $('.container').append "<h2>#{result.title}</h2>"
+        # $('.container').append "<h3>#{result.description}</h3>"
+        # addConnection(connection, result.connectsWith.length) for connection in result.connectsWith
 
 davis_app = Davis ->
-  this.get '/', (req) ->
-    console.log("GET /")
+  # this.get '/', (req) ->
+    # console.log("GET /")
+    # Davis.location.assign(new Davis.Request("/#/itinerary_url/itineraries%2Fhadrian_partial.json/connection/0"))
+  this.get '/#/itinerary/:itinerary/connection/:connection_id', (req) ->
+    console.log(req.params['itinerary'])
+    itinerary_places = req.params['itinerary'].split(',')
     loadItinerary()
+    current_connection = parseInt(req.params['connection_id'])
+    $('#connections-select').val(current_connection)
+  this.get '/#/itinerary_url/:itinerary_url/connection/:connection_id', (req) ->
+    if itinerary_loaded
+      current_connection = parseInt(req.params['connection_id'])
+      displayConnection(itinerary_connections[current_connection])
+      $('#connections-select').val(current_connection)
+    else
+      itinerary_url = unescape(req.params['itinerary_url'])
+      console.log(itinerary_url)
+      $.getJSON itinerary_url, (result) ->
+        $('.container').append "<h2>#{result.title}</h2>"
+        $('.container').append "<h3>#{result.description}</h3>"
+        itinerary_places = result.connectsWith
+        loadItinerary()
+        current_connection = parseInt(req.params['connection_id'])
+        $('#connections-select').val(current_connection)
   this.get '/#/connection/:connection_id', (req) ->
     loadItinerary()
     current_connection = parseInt(req.params['connection_id'])
@@ -60,6 +87,12 @@ flickrPageURL = (photo) ->
 
 bboxIsPoint = (bbox) ->
   (bbox[0] == bbox[2]) && (bbox[1] == bbox[3])
+
+connectionURL = (connection_id) ->
+  if itinerary_url
+    "/#/itinerary_url/#{encodeURIComponent(itinerary_url)}/connection/#{connection_id}"
+  else
+    "/#/itinerary/#{itinerary_places.join()}/connection/#{connection_id}"
 
 flickrMachineSearch = (id, selector = '.container') ->
   ajaxSpinner().appendTo(selector)
@@ -154,9 +187,9 @@ displayDistance = ->
 displayPrevNextButtons = ->
   $('#prev-next-container').empty()
   $('<br/>').appendTo('#prev-next-container')
-  $('<a/>').attr('id','prev-button').attr('class','btn btn-primary btn-lg').attr('role','button').attr('href',"#/connection/#{parseInt(current_connection) - 1}").text("Prev").appendTo('#prev-next-container')
+  $('<a/>').attr('id','prev-button').attr('class','btn btn-primary btn-lg').attr('role','button').attr('href',connectionURL(parseInt(current_connection) - 1)).text("Prev").appendTo('#prev-next-container')
   $('#prev-next-container').append(' ')
-  $('<a/>').attr('id','next-button').attr('class','btn btn-primary btn-lg').attr('role','button').attr('href',"#/connection/#{parseInt(current_connection) + 1}").text("Next").appendTo('#prev-next-container')
+  $('<a/>').attr('id','next-button').attr('class','btn btn-primary btn-lg').attr('role','button').attr('href',connectionURL(parseInt(current_connection) + 1)).text("Next").appendTo('#prev-next-container')
 
   if current_connection == 0
     $('#prev-button').attr('disabled','disabled')
@@ -219,7 +252,7 @@ createDropdown = (connections) ->
   $('<select/>').attr('class','form-control').attr('id','connections-select').appendTo('.container')
   addConnectionToDropdown(connection_index) for connection_index in [0...connections.length]
   $('#connections-select').change (event) ->
-    Davis.location.assign(new Davis.Request("/#/connection/#{$('#connections-select').val()}"))
+    Davis.location.assign(new Davis.Request(connectionURL($('#connections-select').val())))
 
 createProgressBars = ->
   $('<div/>').attr('id','progress-bar-container').appendTo('.container')
@@ -228,9 +261,12 @@ createProgressBars = ->
 
 postConnectionsLoad = ->
   $('#load-progress-container').toggle()
-  # itinerary_connections = (itinerary_connection for itinerary_connection in itinerary_connections when itinerary_connection.title.match(/(milecastle|turret)/i))
-  # $('.container').append "Done. #{itinerary_connections.length} places.<br/>"
-  itinerary_connections = itinerary_connections.sort(sortByLongitude)
+  unordered_itinerary_connections = itinerary_connections.slice(0)
+  itinerary_connections = []
+  for place in itinerary_places
+    matching_connection = _.find(unordered_itinerary_connections, (connection) -> parseInt(connection.id) == parseInt(place))
+    itinerary_connections.push(matching_connection) 
+
   longitudes = _.flatten([item.bbox[0],item.bbox[2]] for item in itinerary_connections)
   latitudes = _.flatten([item.bbox[1],item.bbox[3]] for item in itinerary_connections)
   connections_bbox = [(Math.min longitudes...), (Math.min latitudes...), (Math.max longitudes...), (Math.max latitudes...)]
@@ -250,8 +286,11 @@ postConnectionsLoad = ->
     strokeWeight: 2
   route_path = new google.maps.Polyline(route_polyline)
   route_path.setMap(google_map)
-  if Davis.location.current() == '/'
-    Davis.location.assign(new Davis.Request("/#/connection/0"))
+
+  displayConnection(itinerary_connections[current_connection])
+
+  # if Davis.location.current() == '/'
+    # Davis.location.assign(new Davis.Request("/#/connection/0"))
 
 addConnection = (connection, length) ->
   $.getJSON pleiadesURL(connection), (result) ->
@@ -262,4 +301,7 @@ addConnection = (connection, length) ->
 
 $(document).ready ->  
   davis_app.start()
-  davis_app.lookupRoute('get', '/').run(new Davis.Request('/'))
+  if window.location.hash
+    Davis.location.assign(new Davis.Request("/#{window.location.hash}"))
+  # else
+    # davis_app.lookupRoute('get', '/').run(new Davis.Request('/'))
