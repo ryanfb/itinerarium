@@ -74,9 +74,9 @@ davis_app = Davis ->
   this.get '/#/itinerary_url/:itinerary_url', (req) ->
     Davis.location.assign(new Davis.Request("#/itinerary_url/#{req.params['itinerary_url']}/connection/0"))
   this.get '#/itinerary/:itinerary/connection/:connection_id', itineraryHandler
-  this.get '/#/itinerary/:itinerary/connection/:connection_id', itineraryHandler
+  this.get "#{window.location.pathname}#/itinerary/:itinerary/connection/:connection_id", itineraryHandler
   this.get '#/itinerary_url/:itinerary_url/connection/:connection_id', itineraryURLHandler
-  this.get '/#/itinerary_url/:itinerary_url/connection/:connection_id', itineraryURLHandler
+  this.get "#{window.location.pathname}#/itinerary_url/:itinerary_url/connection/:connection_id", itineraryURLHandler
 
 pleiadesURL = (id) ->
   pleiades_url + id + '/json'
