@@ -36,41 +36,47 @@ loadItinerary = ->
     $('#known-itinerary-list').remove()
     addConnection(connection, itinerary_places.length) for connection in itinerary_places
 
+itineraryHandler = (req) ->
+  if itinerary_loaded
+    current_connection = parseInt(req.params['connection_id'])
+    displayConnection(itinerary_connections[current_connection])
+  else
+    console.log(req.params['itinerary'])
+    itinerary_places = req.params['itinerary'].split(',')
+    current_connection = parseInt(req.params['connection_id'])
+    $('.container').append "<br/>"
+    loadItinerary()
+
+itineraryURLHandler = (req) ->
+  if itinerary_loaded
+    current_connection = parseInt(req.params['connection_id'])
+    displayConnection(itinerary_connections[current_connection])
+  else
+    itinerary_url = unescape(req.params['itinerary_url'])
+    console.log(itinerary_url)
+    $.getJSON itinerary_url, (result) ->
+      $('.container').append "<h2>#{result.title}</h2>"
+      $('.container').append "<h3>#{result.description}</h3>"
+      itinerary_places = result.connectsWith
+      current_connection = parseInt(req.params['connection_id'])
+      loadItinerary()
+
 davis_app = Davis ->
   this.get '/', (req) ->
     unless window.location.hash
       console.log("No itinerary.")
       $('<div/>').attr('id','known-itinerary-list').appendTo('.container')
       for itinerary in known_itineraries
-        $('<a/>').attr('href',"/#/itinerary_url/itineraries%2F#{itinerary.path}.json").text(itinerary.title).appendTo('#known-itinerary-list')
+        $('<a/>').attr('href',"#/itinerary_url/itineraries%2F#{itinerary.path}.json").text(itinerary.title).appendTo('#known-itinerary-list')
         $('<br/>').appendTo('#known-itinerary-list')
   this.get '/#/itinerary/:itinerary', (req) ->
-    Davis.location.assign(new Davis.Request("/#/itinerary/#{req.params['itinerary']}/connection/0"))
+    Davis.location.assign(new Davis.Request("#/itinerary/#{req.params['itinerary']}/connection/0"))
   this.get '/#/itinerary_url/:itinerary_url', (req) ->
-    Davis.location.assign(new Davis.Request("/#/itinerary_url/#{req.params['itinerary_url']}/connection/0"))
-  this.get '/#/itinerary/:itinerary/connection/:connection_id', (req) ->
-    if itinerary_loaded
-      current_connection = parseInt(req.params['connection_id'])
-      displayConnection(itinerary_connections[current_connection])
-    else
-      console.log(req.params['itinerary'])
-      itinerary_places = req.params['itinerary'].split(',')
-      current_connection = parseInt(req.params['connection_id'])
-      $('.container').append "<br/>"
-      loadItinerary()
-  this.get '/#/itinerary_url/:itinerary_url/connection/:connection_id', (req) ->
-    if itinerary_loaded
-      current_connection = parseInt(req.params['connection_id'])
-      displayConnection(itinerary_connections[current_connection])
-    else
-      itinerary_url = unescape(req.params['itinerary_url'])
-      console.log(itinerary_url)
-      $.getJSON itinerary_url, (result) ->
-        $('.container').append "<h2>#{result.title}</h2>"
-        $('.container').append "<h3>#{result.description}</h3>"
-        itinerary_places = result.connectsWith
-        current_connection = parseInt(req.params['connection_id'])
-        loadItinerary()
+    Davis.location.assign(new Davis.Request("#/itinerary_url/#{req.params['itinerary_url']}/connection/0"))
+  this.get '#/itinerary/:itinerary/connection/:connection_id', itineraryHandler
+  this.get '/#/itinerary/:itinerary/connection/:connection_id', itineraryHandler
+  this.get '#/itinerary_url/:itinerary_url/connection/:connection_id', itineraryURLHandler
+  this.get '/#/itinerary_url/:itinerary_url/connection/:connection_id', itineraryURLHandler
 
 pleiadesURL = (id) ->
   pleiades_url + id + '/json'
@@ -89,9 +95,9 @@ bboxIsPoint = (bbox) ->
 
 connectionURL = (connection_id) ->
   if itinerary_url
-    "/#/itinerary_url/#{encodeURIComponent(itinerary_url)}/connection/#{connection_id}"
+    location.href.replace(location.hash,"") + "#/itinerary_url/#{encodeURIComponent(itinerary_url)}/connection/#{connection_id}"
   else
-    "/#/itinerary/#{itinerary_places.join()}/connection/#{connection_id}"
+    location.href.replace(location.hash,"") + "#/itinerary/#{itinerary_places.join()}/connection/#{connection_id}"
 
 flickrMachineSearch = (id, selector = '.container') ->
   ajaxSpinner().appendTo(selector)
