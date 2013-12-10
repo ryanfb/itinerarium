@@ -401,7 +401,7 @@
       matching_connection = _.find(unordered_itinerary_connections, function(connection) {
         return parseInt(connection.id) === parseInt(place);
       });
-      if (matching_connection.bbox !== null) {
+      if (matching_connection && matching_connection.bbox) {
         itinerary_connections.push(matching_connection);
       }
     }
