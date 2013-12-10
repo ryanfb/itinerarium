@@ -67,7 +67,7 @@ davis_app = Davis ->
       console.log("No itinerary.")
       $('<div/>').attr('id','known-itinerary-list').appendTo('.container')
       for itinerary in known_itineraries
-        $('<a/>').attr('href',"#/itinerary_url/itineraries%2F#{itinerary.path}.json").text(itinerary.title).appendTo('#known-itinerary-list')
+        $('<a/>').attr('href',"#/itinerary_url/#{encodeURIComponent(window.location.pathname)}itineraries%2F#{itinerary.path}.json").text(itinerary.title).appendTo('#known-itinerary-list')
         $('<br/>').appendTo('#known-itinerary-list')
   this.get "#{window.location.pathname}#/itinerary/:itinerary", (req) ->
     Davis.location.assign(new Davis.Request("#/itinerary/#{req.params['itinerary']}/connection/0"))

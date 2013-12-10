@@ -105,7 +105,7 @@
         _results = [];
         for (_i = 0, _len = known_itineraries.length; _i < _len; _i++) {
           itinerary = known_itineraries[_i];
-          $('<a/>').attr('href', "#/itinerary_url/itineraries%2F" + itinerary.path + ".json").text(itinerary.title).appendTo('#known-itinerary-list');
+          $('<a/>').attr('href', "#/itinerary_url/" + (encodeURIComponent(window.location.pathname)) + "itineraries%2F" + itinerary.path + ".json").text(itinerary.title).appendTo('#known-itinerary-list');
           _results.push($('<br/>').appendTo('#known-itinerary-list'));
         }
         return _results;
