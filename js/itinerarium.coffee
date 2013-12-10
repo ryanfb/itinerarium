@@ -36,20 +36,24 @@ loadItinerary = ->
         # addConnection(connection, result.connectsWith.length) for connection in result.connectsWith
 
 davis_app = Davis ->
-  # this.get '/', (req) ->
-    # console.log("GET /")
-    # Davis.location.assign(new Davis.Request("/#/itinerary_url/itineraries%2Fhadrian_partial.json/connection/0"))
+  this.get '/#/itinerary/:itinerary', (req) ->
+    Davis.location.assign(new Davis.Request("/#/itinerary/#{req.params['itinerary']}/connection/0"))
+  this.get '/#/itinerary_url/:itinerary_url', (req) ->
+    Davis.location.assign(new Davis.Request("/#/itinerary_url/#{req.params['itinerary_url']}/connection/0"))
   this.get '/#/itinerary/:itinerary/connection/:connection_id', (req) ->
-    console.log(req.params['itinerary'])
-    itinerary_places = req.params['itinerary'].split(',')
-    loadItinerary()
-    current_connection = parseInt(req.params['connection_id'])
-    $('#connections-select').val(current_connection)
+    if itinerary_loaded
+      current_connection = parseInt(req.params['connection_id'])
+      displayConnection(itinerary_connections[current_connection])
+    else
+      console.log(req.params['itinerary'])
+      itinerary_places = req.params['itinerary'].split(',')
+      current_connection = parseInt(req.params['connection_id'])
+      $('.container').append "<br/>"
+      loadItinerary()
   this.get '/#/itinerary_url/:itinerary_url/connection/:connection_id', (req) ->
     if itinerary_loaded
       current_connection = parseInt(req.params['connection_id'])
       displayConnection(itinerary_connections[current_connection])
-      $('#connections-select').val(current_connection)
     else
       itinerary_url = unescape(req.params['itinerary_url'])
       console.log(itinerary_url)
@@ -57,21 +61,8 @@ davis_app = Davis ->
         $('.container').append "<h2>#{result.title}</h2>"
         $('.container').append "<h3>#{result.description}</h3>"
         itinerary_places = result.connectsWith
-        loadItinerary()
         current_connection = parseInt(req.params['connection_id'])
-        $('#connections-select').val(current_connection)
-  this.get '/#/connection/:connection_id', (req) ->
-    loadItinerary()
-    current_connection = parseInt(req.params['connection_id'])
-    $('#connections-select').val(current_connection)
-    displayConnection(itinerary_connections[current_connection])
-  this.get '/#/place/:place_id', (req) ->
-    loadItinerary()
-    console.log(req.params['place_id'])
-    connection = _.find itinerary_connections, (connection) ->
-      connection.id == req.params['place_id']
-    console.log(connection)
-    displayConnection(connection)
+        loadItinerary()
 
 pleiadesURL = (id) ->
   pleiades_url + id + '/json'
@@ -191,9 +182,10 @@ displayPrevNextButtons = ->
   $('#prev-next-container').append(' ')
   $('<a/>').attr('id','next-button').attr('class','btn btn-primary btn-lg').attr('role','button').attr('href',connectionURL(parseInt(current_connection) + 1)).text("Next").appendTo('#prev-next-container')
 
+  # console.log("Length: #{itinerary_connections.length}")
   if current_connection == 0
     $('#prev-button').attr('disabled','disabled')
-  else if current_connection == (itinerary_connections.length - 1)
+  if current_connection == (itinerary_connections.length - 1)
     $('#next-button').attr('disabled','disabled')
 
 displayConnectionMarker = (connection) ->
@@ -244,6 +236,8 @@ displayConnection = (connection) ->
   $('#distance-progress').attr('style',"width: #{(calculateDistanceBetweenConnections(0, current_connection) / calculateDistanceBetweenConnections(0, itinerary_connections.length - 1))*100}%")
   displayPrevNextButtons()
 
+  $('#connections-select').val(current_connection)
+
 addConnectionToDropdown = (connection_index) ->
   connection = itinerary_connections[connection_index]
   $('<option/>').attr('value',connection_index).text(connection.title).appendTo('#connections-select')
@@ -288,9 +282,6 @@ postConnectionsLoad = ->
   route_path.setMap(google_map)
 
   displayConnection(itinerary_connections[current_connection])
-
-  # if Davis.location.current() == '/'
-    # Davis.location.assign(new Davis.Request("/#/connection/0"))
 
 addConnection = (connection, length) ->
   $.getJSON pleiadesURL(connection), (result) ->
