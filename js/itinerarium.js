@@ -468,7 +468,7 @@
   $(document).ready(function() {
     davis_app.start();
     if (window.location.hash) {
-      return Davis.location.assign(new Davis.Request("/" + window.location.hash));
+      return Davis.location.assign(new Davis.Request("" + window.location.pathname + window.location.hash));
     } else {
       return davis_app.lookupRoute('get', '/').run(new Davis.Request('/'));
     }

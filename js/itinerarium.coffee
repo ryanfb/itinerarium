@@ -310,6 +310,6 @@ addConnection = (connection, length) ->
 $(document).ready ->  
   davis_app.start()
   if window.location.hash
-    Davis.location.assign(new Davis.Request("/#{window.location.hash}"))
+    Davis.location.assign(new Davis.Request("#{window.location.pathname}#{window.location.hash}"))
   else
     davis_app.lookupRoute('get', '/').run(new Davis.Request('/'))
