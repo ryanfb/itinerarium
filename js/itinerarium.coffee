@@ -69,9 +69,9 @@ davis_app = Davis ->
       for itinerary in known_itineraries
         $('<a/>').attr('href',"#/itinerary_url/itineraries%2F#{itinerary.path}.json").text(itinerary.title).appendTo('#known-itinerary-list')
         $('<br/>').appendTo('#known-itinerary-list')
-  this.get '/#/itinerary/:itinerary', (req) ->
+  this.get "#{window.location.pathname}#/itinerary/:itinerary", (req) ->
     Davis.location.assign(new Davis.Request("#/itinerary/#{req.params['itinerary']}/connection/0"))
-  this.get '/#/itinerary_url/:itinerary_url', (req) ->
+  this.get "#{window.location.pathname}#/itinerary_url/:itinerary_url", (req) ->
     Davis.location.assign(new Davis.Request("#/itinerary_url/#{req.params['itinerary_url']}/connection/0"))
   this.get '#/itinerary/:itinerary/connection/:connection_id', itineraryHandler
   this.get "#{window.location.pathname}#/itinerary/:itinerary/connection/:connection_id", itineraryHandler

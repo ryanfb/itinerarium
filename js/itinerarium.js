@@ -111,10 +111,10 @@
         return _results;
       }
     });
-    this.get('/#/itinerary/:itinerary', function(req) {
+    this.get("" + window.location.pathname + "#/itinerary/:itinerary", function(req) {
       return Davis.location.assign(new Davis.Request("#/itinerary/" + req.params['itinerary'] + "/connection/0"));
     });
-    this.get('/#/itinerary_url/:itinerary_url', function(req) {
+    this.get("" + window.location.pathname + "#/itinerary_url/:itinerary_url", function(req) {
       return Davis.location.assign(new Davis.Request("#/itinerary_url/" + req.params['itinerary_url'] + "/connection/0"));
     });
     this.get('#/itinerary/:itinerary/connection/:connection_id', itineraryHandler);
