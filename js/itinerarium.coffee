@@ -61,6 +61,7 @@ bboxIsPoint = (bbox) ->
   (bbox[0] == bbox[2]) && (bbox[1] == bbox[3])
 
 flickrMachineSearch = (id, selector = '.container') ->
+  ajaxSpinner().appendTo(selector)
   parameters =
     api_key: flickr_api_key
     method: 'flickr.photos.search'
@@ -69,12 +70,17 @@ flickrMachineSearch = (id, selector = '.container') ->
     machine_tags: "pleiades:*=#{id}"
 
   $.getJSON flickr_rest_url, parameters, (data) ->
+    $("#{selector} .spinner").remove()
     if data.photos.photo.length == 0
       $('<p/>').text('No results found.').appendTo(selector)
     else
       $('<a/>').attr('href',flickrPageURL(photo)).attr('target','_blank').append($('<img/>').attr('src',flickrThumbURL(photo))).appendTo(selector) for photo in data.photos.photo
 
+ajaxSpinner = ->
+  $('<img/>').attr('src','spinner.gif').attr('class','spinner')
+
 instagramSearch = (lat, long, distance = 1000, selector = '.container') ->
+  ajaxSpinner().appendTo(selector)
   parameters =
     lat: lat
     lng: long
@@ -88,12 +94,14 @@ instagramSearch = (lat, long, distance = 1000, selector = '.container') ->
     type: 'GET'
     crossDomain: true
     success: (data) ->
+      $("#{selector} .spinner").remove()
       if data.data.length == 0
         $('<p/>').text('No results found.').appendTo(selector)
       else
         $('<a/>').attr('href',photo.link).attr('target','_blank').append($('<img/>').attr('src',photo.images.thumbnail.url)).appendTo(selector) for photo in data.data
 
 flickrSearch = (bbox, selector = '.container') ->
+  ajaxSpinner().appendTo(selector)
   parameters =
     api_key: flickr_api_key
     method: 'flickr.photos.search'
@@ -110,6 +118,7 @@ flickrSearch = (bbox, selector = '.container') ->
     parameters.bbox = bbox.join(',')
 
   $.getJSON flickr_rest_url, parameters, (data) ->
+    $("#{selector} .spinner").remove()
     if data.photos.photo.length == 0
       $('<p/>').text('No results found.').appendTo(selector)
     else
