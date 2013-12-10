@@ -1,12 +1,17 @@
 # $ ?= require 'jquery' # For Node.js compatibility
 # _ ?= require 'underscore'
 
-itinerary_id = null # 91358
 itinerary_places = []
 itinerary_connections = []
 itinerary_url = null
 
-# https%3A%2F%2Fgist.github.com%2Fryanfb%2Ff2b7f74068b4fc8bea48%2Fraw%2F8aa4a709f8837d4cf6d44f0bfa24e30aeac1e487%2Fhadrian_partial.json
+known_itineraries = [
+  {title: "Hadrian's Wall", path: "hadrian_full"},
+  {title: "Hadrian's Wall (milecastles and turrets only)", path: "hadrian_partial"},
+  {title: "Vicarello Beaker 1", path: "vicarello_1"},
+  {title: "Vicarello Beaker 2", path: "vicarello_2"},
+  {title: "Vicarello Beaker 3", path: "vicarello_3"},
+  {title: "Vicarello Beaker 4", path: "vicarello_4"},]
 
 flickr_api_key = 'f6bca6b68d42d5a436054222be2f530e'
 flickr_rest_url = 'http://api.flickr.com/services/rest/?jsoncallback=?'
@@ -28,14 +33,17 @@ current_connection = 0
 loadItinerary = ->
   unless itinerary_loaded
     itinerary_loaded = true
+    $('#known-itinerary-list').remove()
     addConnection(connection, itinerary_places.length) for connection in itinerary_places
-    # else
-      # $.getJSON pleiadesURL(itinerary_id), (result) ->
-        # $('.container').append "<h2>#{result.title}</h2>"
-        # $('.container').append "<h3>#{result.description}</h3>"
-        # addConnection(connection, result.connectsWith.length) for connection in result.connectsWith
 
 davis_app = Davis ->
+  this.get '/', (req) ->
+    unless window.location.hash
+      console.log("No itinerary.")
+      $('<div/>').attr('id','known-itinerary-list').appendTo('.container')
+      for itinerary in known_itineraries
+        $('<a/>').attr('href',"/#/itinerary_url/itineraries%2F#{itinerary.path}.json").text(itinerary.title).appendTo('#known-itinerary-list')
+        $('<br/>').appendTo('#known-itinerary-list')
   this.get '/#/itinerary/:itinerary', (req) ->
     Davis.location.assign(new Davis.Request("/#/itinerary/#{req.params['itinerary']}/connection/0"))
   this.get '/#/itinerary_url/:itinerary_url', (req) ->
@@ -259,8 +267,8 @@ postConnectionsLoad = ->
   itinerary_connections = []
   for place in itinerary_places
     matching_connection = _.find(unordered_itinerary_connections, (connection) -> parseInt(connection.id) == parseInt(place))
-    itinerary_connections.push(matching_connection) 
-
+    unless matching_connection.bbox == null
+      itinerary_connections.push(matching_connection) 
   longitudes = _.flatten([item.bbox[0],item.bbox[2]] for item in itinerary_connections)
   latitudes = _.flatten([item.bbox[1],item.bbox[3]] for item in itinerary_connections)
   connections_bbox = [(Math.min longitudes...), (Math.min latitudes...), (Math.max longitudes...), (Math.max latitudes...)]
@@ -294,5 +302,5 @@ $(document).ready ->
   davis_app.start()
   if window.location.hash
     Davis.location.assign(new Davis.Request("/#{window.location.hash}"))
-  # else
-    # davis_app.lookupRoute('get', '/').run(new Davis.Request('/'))
+  else
+    davis_app.lookupRoute('get', '/').run(new Davis.Request('/'))
