@@ -79,7 +79,10 @@ davis_app = Davis ->
   this.get "#{window.location.pathname}#/itinerary_url/:itinerary_url/connection/:connection_id", itineraryURLHandler
 
 pleiadesURL = (id) ->
-  pleiades_url + id + '/json'
+  if window.location.hostname == 'ryanfb.github.io'
+    'http://ryanfb.github.io/pleiades-geojson/geojson/' + id + '.geojson'
+  else
+    pleiades_url + id + '/json'
 
 sortByLongitude = (a, b) ->
   a.reprPoint[0] - b.reprPoint[0]
