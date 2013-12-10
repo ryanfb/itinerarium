@@ -136,6 +136,11 @@ calculateDistance = (lat1, lon1, lat2, lon2) ->
   c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
   d = R * c
 
+calculateDistanceBetweenConnections = (index1, index2) ->
+  total_distance = 0.0
+  (total_distance += calculateDistance(itinerary_connections[index].reprPoint[1], itinerary_connections[index].reprPoint[0], itinerary_connections[index+1].reprPoint[1], itinerary_connections[index+1].reprPoint[0])) for index in [index1...index2]
+  return total_distance
+
 displayDistance = ->
   if current_connection != 0
     distance = calculateDistance(itinerary_connections[current_connection].reprPoint[1],itinerary_connections[current_connection].reprPoint[0],itinerary_connections[current_connection - 1].reprPoint[1],itinerary_connections[current_connection - 1].reprPoint[0])
@@ -200,6 +205,8 @@ displayConnection = (connection) ->
   flickrSearch(connection.bbox, "#place-#{connection.id} .flickr-geo")
   instagramSearch(connection.reprPoint[1], connection.reprPoint[0], 500, "#place-#{connection.id} .instagram")
 
+  $('#connections-progress').attr('style',"width: #{(current_connection / (itinerary_connections.length - 1))*100}%")
+  $('#distance-progress').attr('style',"width: #{(calculateDistanceBetweenConnections(0, current_connection) / calculateDistanceBetweenConnections(0, itinerary_connections.length - 1))*100}%")
   displayPrevNextButtons()
 
 addConnectionToDropdown = (connection_index) ->
@@ -212,6 +219,10 @@ createDropdown = (connections) ->
   $('#connections-select').change (event) ->
     Davis.location.assign(new Davis.Request("/#/connection/#{$('#connections-select').val()}"))
 
+createProgressBars = ->
+  $('<div/>').attr('id','progress-bar-container').appendTo('.container')
+  $('<div/>').attr('class','progress').append($('<div/>').attr('class','progress-bar progress-bar-info').attr('role','progressbar').attr('style','width: 0%').attr('id','connections-progress').text('Places visited')).appendTo('#progress-bar-container')
+  $('<div/>').attr('class','progress').append($('<div/>').attr('class','progress-bar progress-bar-warning').attr('role','progressbar').attr('style','width: 0%').attr('id','distance-progress').text('Distance traveled')).appendTo('#progress-bar-container')
 
 postConnectionsLoad = ->
   $('#load-progress-container').toggle()
@@ -221,6 +232,7 @@ postConnectionsLoad = ->
   longitudes = _.flatten([item.bbox[0],item.bbox[2]] for item in itinerary_connections)
   latitudes = _.flatten([item.bbox[1],item.bbox[3]] for item in itinerary_connections)
   connections_bbox = [(Math.min longitudes...), (Math.min latitudes...), (Math.max longitudes...), (Math.max latitudes...)]
+  createProgressBars()
   createDropdown(itinerary_connections)
   $('<div/>').attr('id','prev-next-container').appendTo('.container')
   map_options =
