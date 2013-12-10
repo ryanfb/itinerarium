@@ -1,8 +1,8 @@
 # $ ?= require 'jquery' # For Node.js compatibility
 # _ ?= require 'underscore'
 
-hadrian_id = 91358
-hadrian_connections = []
+itinerary_id = 91358
+itinerary_connections = []
 
 flickr_api_key = 'f6bca6b68d42d5a436054222be2f530e'
 flickr_rest_url = 'http://api.flickr.com/services/rest/?jsoncallback=?'
@@ -22,7 +22,7 @@ current_connection = 0
 
 loadItinerary = ->
   unless itinerary_loaded
-    $.getJSON pleiadesURL(hadrian_id), (result) ->
+    $.getJSON pleiadesURL(itinerary_id), (result) ->
       $('.container').append "<h2>#{result.title}</h2>"
       $('.container').append "<h3>#{result.description}</h3>"
       addConnection(connection, result.connectsWith.length) for connection in result.connectsWith
@@ -36,11 +36,11 @@ davis_app = Davis ->
     loadItinerary()
     current_connection = parseInt(req.params['connection_id'])
     $('#connections-select').val(current_connection)
-    displayConnection(hadrian_connections[current_connection])
+    displayConnection(itinerary_connections[current_connection])
   this.get '/#/place/:place_id', (req) ->
     loadItinerary()
     console.log(req.params['place_id'])
-    connection = _.find hadrian_connections, (connection) ->
+    connection = _.find itinerary_connections, (connection) ->
       connection.id == req.params['place_id']
     console.log(connection)
     displayConnection(connection)
@@ -129,11 +129,11 @@ calculateDistance = (lat1, lon1, lat2, lon2) ->
 
 displayDistance = ->
   if current_connection != 0
-    distance = calculateDistance(hadrian_connections[current_connection].reprPoint[1],hadrian_connections[current_connection].reprPoint[0],hadrian_connections[current_connection - 1].reprPoint[1],hadrian_connections[current_connection - 1].reprPoint[0])
-    $('<em/>').text("#{distance.toFixed(2)}km from #{hadrian_connections[current_connection - 1].title}.").append($('<br/>')).appendTo('.connection-container')
-  if current_connection != (hadrian_connections.length - 1)
-    distance = calculateDistance(hadrian_connections[current_connection].reprPoint[1],hadrian_connections[current_connection].reprPoint[0],hadrian_connections[current_connection + 1].reprPoint[1],hadrian_connections[current_connection + 1].reprPoint[0])
-    $('<em/>').text("#{distance.toFixed(2)}km to #{hadrian_connections[current_connection + 1].title}.").append($('<br/>')).appendTo('.connection-container')
+    distance = calculateDistance(itinerary_connections[current_connection].reprPoint[1],itinerary_connections[current_connection].reprPoint[0],itinerary_connections[current_connection - 1].reprPoint[1],itinerary_connections[current_connection - 1].reprPoint[0])
+    $('<em/>').text("#{distance.toFixed(2)}km from #{itinerary_connections[current_connection - 1].title}.").append($('<br/>')).appendTo('.connection-container')
+  if current_connection != (itinerary_connections.length - 1)
+    distance = calculateDistance(itinerary_connections[current_connection].reprPoint[1],itinerary_connections[current_connection].reprPoint[0],itinerary_connections[current_connection + 1].reprPoint[1],itinerary_connections[current_connection + 1].reprPoint[0])
+    $('<em/>').text("#{distance.toFixed(2)}km to #{itinerary_connections[current_connection + 1].title}.").append($('<br/>')).appendTo('.connection-container')
   $('<br/>').appendTo('.connection-container')
 
 displayPrevNextButtons = ->
@@ -145,20 +145,30 @@ displayPrevNextButtons = ->
 
   if current_connection == 0
     $('#prev-button').attr('disabled','disabled')
-  else if current_connection == (hadrian_connections.length - 1)
+  else if current_connection == (itinerary_connections.length - 1)
     $('#next-button').attr('disabled','disabled')
 
 displayConnectionMarker = (connection) ->
-  marker_options =
-    position: new google.maps.LatLng(connection.reprPoint[1], connection.reprPoint[0])
-    map: google_map
-    title: connection.title
-
   if google_map_marker != null
     google_map_marker.setMap(null)
     google_map_marker = null
 
-  google_map_marker = new google.maps.Marker(marker_options)
+  if bboxIsPoint(connection.bbox)
+    marker_options =
+      position: new google.maps.LatLng(connection.reprPoint[1], connection.reprPoint[0])
+      map: google_map
+      title: connection.title
+    google_map_marker = new google.maps.Marker(marker_options)
+  else
+    rectangle_options =
+      strokeWeight: 2
+      strokeColor: '#FF0000'
+      strokeOpacity: 0.8
+      fillColor: '#FF0000'
+      fillOpacity: 0.35
+      map: google_map
+      bounds: new google.maps.LatLngBounds(new google.maps.LatLng(connection.bbox[1],connection.bbox[0]),new google.maps.LatLng(connection.bbox[3],connection.bbox[2]))
+    google_map_marker = new google.maps.Rectangle(rectangle_options)
 
 displayConnection = (connection) ->
   displayConnectionMarker(connection)
@@ -184,7 +194,7 @@ displayConnection = (connection) ->
   displayPrevNextButtons()
 
 addConnectionToDropdown = (connection_index) ->
-  connection = hadrian_connections[connection_index]
+  connection = itinerary_connections[connection_index]
   $('<option/>').attr('value',connection_index).text(connection.title).appendTo('#connections-select')
 
 createDropdown = (connections) ->
@@ -196,13 +206,13 @@ createDropdown = (connections) ->
 
 postConnectionsLoad = ->
   $('#load-progress-container').toggle()
-  hadrian_connections = (hadrian_connection for hadrian_connection in hadrian_connections when hadrian_connection.title.match(/(milecastle|turret)/i))
-  $('.container').append "Done. #{hadrian_connections.length} places.<br/>"
-  hadrian_connections = hadrian_connections.sort(sortByLongitude)
-  longitudes = _.flatten([item.bbox[0],item.bbox[2]] for item in hadrian_connections)
-  latitudes = _.flatten([item.bbox[1],item.bbox[3]] for item in hadrian_connections)
+  # itinerary_connections = (itinerary_connection for itinerary_connection in itinerary_connections when itinerary_connection.title.match(/(milecastle|turret)/i))
+  # $('.container').append "Done. #{itinerary_connections.length} places.<br/>"
+  itinerary_connections = itinerary_connections.sort(sortByLongitude)
+  longitudes = _.flatten([item.bbox[0],item.bbox[2]] for item in itinerary_connections)
+  latitudes = _.flatten([item.bbox[1],item.bbox[3]] for item in itinerary_connections)
   connections_bbox = [(Math.min longitudes...), (Math.min latitudes...), (Math.max longitudes...), (Math.max latitudes...)]
-  createDropdown(hadrian_connections)
+  createDropdown(itinerary_connections)
   $('<div/>').attr('id','prev-next-container').appendTo('.container')
   map_options =
     center: new google.maps.LatLng(-34.397, 150.644)
@@ -211,7 +221,7 @@ postConnectionsLoad = ->
   google_map = new google.maps.Map(document.getElementById("map_canvas"),map_options)
   google_map.fitBounds(new google.maps.LatLngBounds(new google.maps.LatLng(connections_bbox[1],connections_bbox[0]),new google.maps.LatLng(connections_bbox[3],connections_bbox[2])))
   route_polyline =
-    path: (new google.maps.LatLng(item.bbox[1],item.bbox[0]) for item in hadrian_connections when bboxIsPoint(item.bbox))
+    path: (new google.maps.LatLng(item.bbox[1],item.bbox[0]) for item in itinerary_connections when bboxIsPoint(item.bbox))
     strokeColor: "#FF0000"
     strokeOpacity: 1.0
     strokeWeight: 2
@@ -222,9 +232,9 @@ postConnectionsLoad = ->
 
 addConnection = (connection, length) ->
   $.getJSON pleiadesURL(connection), (result) ->
-    hadrian_connections.push result
-    $('#load-progress').attr('style',"width: #{(hadrian_connections.length / length)*100}%;")
-    if hadrian_connections.length == length
+    itinerary_connections.push result
+    $('#load-progress').attr('style',"width: #{(itinerary_connections.length / length)*100}%;")
+    if itinerary_connections.length == length
       postConnectionsLoad()
 
 $(document).ready ->  
