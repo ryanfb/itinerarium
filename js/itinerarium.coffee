@@ -78,11 +78,17 @@ instagramSearch = (lat, long, distance = 1000, selector = '.container') ->
     client_id: instagram_client_id
     distance: distance
 
-  $.getJSON instagram_search_url, parameters, (data) ->
-    if data.data.length == 0
-      $('<p/>').text('No results found.').appendTo(selector)
-    else
-      $('<img/>').attr('src',photo.images.thumbnail.url).appendTo(selector) for photo in data.data
+  $.ajax
+    dataType: 'jsonp'
+    data: parameters
+    url: instagram_search_url
+    type: 'GET'
+    crossDomain: true
+    success: (data) ->
+      if data.data.length == 0
+        $('<p/>').text('No results found.').appendTo(selector)
+      else
+        $('<img/>').attr('src',photo.images.thumbnail.url).appendTo(selector) for photo in data.data
 
 flickrSearch = (bbox, selector = '.container') ->
   parameters =
