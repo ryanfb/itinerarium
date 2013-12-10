@@ -35,6 +35,7 @@ davis_app = Davis ->
   this.get '/#/connection/:connection_id', (req) ->
     loadItinerary()
     current_connection = parseInt(req.params['connection_id'])
+    $('#connections-select').val(current_connection)
     displayConnection(hadrian_connections[current_connection])
   this.get '/#/place/:place_id', (req) ->
     loadItinerary()
@@ -153,7 +154,6 @@ displayConnectionMarker = (connection) ->
 displayConnection = (connection) ->
   displayConnectionMarker(connection)
   $('.connection-container').remove()
-  $('#connections_dropdown_button').text(connection.title)
   $('<div/>').attr('class','connection-container').attr('id',"place-#{connection.id}").appendTo('.container')
   $('<h4/>').appendTo("#place-#{connection.id}")
   $('<a/>').attr('href',"#{pleiades_url}#{connection.id}").attr('target','_blank').text(connection.title).appendTo("#place-#{connection.id} h4")
@@ -176,15 +176,14 @@ displayConnection = (connection) ->
 
 addConnectionToDropdown = (connection_index) ->
   connection = hadrian_connections[connection_index]
-  $('<li/>').attr('role','presentation').attr('id',"li-#{connection.id}").appendTo('#connections_dropdown > ul')
-  $('<a/>').attr('role','menuitem').attr('tabindex','-1').attr('href',"#/connection/#{connection_index}").text(connection.title).appendTo("#li-#{connection.id}")
+  $('<option/>').attr('value',connection_index).text(connection.title).appendTo('#connections-select')
 
 createDropdown = (connections) ->
-  $('<div/>').attr('class','dropdown').attr('id','connections_dropdown').appendTo('.container')
-  $('<button/>').attr('class','btn btn-default dropdown-toggle').attr('style','width: 100%').attr('type','button').attr('id','connections_dropdown_button').attr('data-toggle','dropdown').appendTo('#connections_dropdown')
-  $('<span/>').attr('class','caret').appendTo('#connections_dropdown > button')
-  $('<ul/>').attr('class','dropdown-menu').attr('role','menu').attr('aria-labelledby','connections_dropdown_button').appendTo('#connections_dropdown')
+  $('<select/>').attr('class','form-control').attr('id','connections-select').appendTo('.container')
   addConnectionToDropdown(connection_index) for connection_index in [0...connections.length]
+  $('#connections-select').change (event) ->
+    Davis.location.assign(new Davis.Request("/#/connection/#{$('#connections-select').val()}"))
+
 
 postConnectionsLoad = ->
   $('#load-progress-container').toggle()
@@ -210,7 +209,7 @@ postConnectionsLoad = ->
   route_path = new google.maps.Polyline(route_polyline)
   route_path.setMap(google_map)
   if Davis.location.current() == '/'
-    Davis.location.assign(new Davis.Request("/#/connection/0"));
+    Davis.location.assign(new Davis.Request("/#/connection/0"))
 
 addConnection = (connection, length) ->
   $.getJSON pleiadesURL(connection), (result) ->
