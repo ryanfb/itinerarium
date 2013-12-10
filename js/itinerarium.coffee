@@ -51,8 +51,11 @@ pleiadesURL = (id) ->
 sortByLongitude = (a, b) ->
   a.reprPoint[0] - b.reprPoint[0]
 
-flickrURL = (photo) ->
+flickrThumbURL = (photo) ->
   "http://farm#{photo.farm}.staticflickr.com/#{photo.server}/#{photo.id}_#{photo.secret}_q.jpg"
+
+flickrPageURL = (photo) ->
+  "http://www.flickr.com/photos/#{photo.owner}/#{photo.id}"
 
 bboxIsPoint = (bbox) ->
   (bbox[0] == bbox[2]) && (bbox[1] == bbox[3])
@@ -69,7 +72,7 @@ flickrMachineSearch = (id, selector = '.container') ->
     if data.photos.photo.length == 0
       $('<p/>').text('No results found.').appendTo(selector)
     else
-      $('<img/>').attr('src',flickrURL(photo)).appendTo(selector) for photo in data.photos.photo
+      $('<a/>').attr('href',flickrPageURL(photo)).attr('target','_blank').append($('<img/>').attr('src',flickrThumbURL(photo))).appendTo(selector) for photo in data.photos.photo
 
 instagramSearch = (lat, long, distance = 1000, selector = '.container') ->
   parameters =
@@ -88,7 +91,7 @@ instagramSearch = (lat, long, distance = 1000, selector = '.container') ->
       if data.data.length == 0
         $('<p/>').text('No results found.').appendTo(selector)
       else
-        $('<img/>').attr('src',photo.images.thumbnail.url).appendTo(selector) for photo in data.data
+        $('<a/>').attr('href',photo.link).attr('target','_blank').append($('<img/>').attr('src',photo.images.thumbnail.url)).appendTo(selector) for photo in data.data
 
 flickrSearch = (bbox, selector = '.container') ->
   parameters =
@@ -110,7 +113,7 @@ flickrSearch = (bbox, selector = '.container') ->
     if data.photos.photo.length == 0
       $('<p/>').text('No results found.').appendTo(selector)
     else
-      $('<img/>').attr('src',flickrURL(photo)).appendTo(selector) for photo in data.photos.photo
+      $('<a/>').attr('href',flickrPageURL(photo)).attr('target','_blank').append($('<img/>').attr('src',flickrThumbURL(photo))).appendTo(selector) for photo in data.photos.photo
 
 # http://www.movable-type.co.uk/scripts/latlong.html
 calculateDistance = (lat1, lon1, lat2, lon2) ->
