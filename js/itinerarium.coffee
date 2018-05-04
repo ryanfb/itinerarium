@@ -15,7 +15,7 @@ known_itineraries = [
   {title: "Vicarello Beaker 4", path: "vicarello_4"},]
 
 flickr_api_key = 'f6bca6b68d42d5a436054222be2f530e'
-flickr_rest_url = 'http://api.flickr.com/services/rest/?jsoncallback=?'
+flickr_rest_url = 'https://api.flickr.com/services/rest/?jsoncallback=?'
 
 instagram_client_id = '0bb344d5e9454a8a8ac70f0b715be3d8'
 instagram_search_url = 'https://api.instagram.com/v1/media/search?'
@@ -138,7 +138,7 @@ instagramSearch = (lat, long, distance = 1000, selector = '.container') ->
     crossDomain: true
     success: (data) ->
       $("#{selector} .spinner").remove()
-      if data.data.length == 0
+      if (data.data?) and (data.data.length == 0)
         $('<p/>').text('No results found.').appendTo(selector)
       else
         $('<a/>').attr('href',photo.link).attr('target','_blank').append($('<img/>').attr('src',photo.images.thumbnail.url)).appendTo(selector) for photo in data.data

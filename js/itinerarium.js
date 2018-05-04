@@ -35,7 +35,7 @@
 
   flickr_api_key = 'f6bca6b68d42d5a436054222be2f530e';
 
-  flickr_rest_url = 'http://api.flickr.com/services/rest/?jsoncallback=?';
+  flickr_rest_url = 'https://api.flickr.com/services/rest/?jsoncallback=?';
 
   instagram_client_id = '0bb344d5e9454a8a8ac70f0b715be3d8';
 
@@ -216,7 +216,7 @@
       success: function(data) {
         var photo, _i, _len, _ref, _results;
         $("" + selector + " .spinner").remove();
-        if (data.data.length === 0) {
+        if ((data.data != null) && (data.data.length === 0)) {
           return $('<p/>').text('No results found.').appendTo(selector);
         } else {
           _ref = data.data;
