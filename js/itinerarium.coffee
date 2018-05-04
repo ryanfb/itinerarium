@@ -8,6 +8,7 @@ itinerary_url = null
 known_itineraries = [
   {title: "Hadrian's Wall", path: "hadrian_full"},
   {title: "Hadrian's Wall (milecastles and turrets only)", path: "hadrian_partial"},
+  {title: "Itinerarium Burdigalense", path: "bordeaux"},
   {title: "Vicarello Beaker 1", path: "vicarello_1"},
   {title: "Vicarello Beaker 2", path: "vicarello_2"},
   {title: "Vicarello Beaker 3", path: "vicarello_3"},
