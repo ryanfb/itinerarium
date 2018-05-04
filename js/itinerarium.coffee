@@ -278,7 +278,7 @@ postConnectionsLoad = ->
   for place in itinerary_places
     matching_connection = _.find(unordered_itinerary_connections, (connection) -> parseInt(connection.id) == parseInt(place))
     if matching_connection && matching_connection.bbox
-      itinerary_connections.push(matching_connection) 
+      itinerary_connections.push(matching_connection)
   longitudes = _.flatten([item.bbox[0],item.bbox[2]] for item in itinerary_connections)
   latitudes = _.flatten([item.bbox[1],item.bbox[3]] for item in itinerary_connections)
   connections_bbox = [(Math.min longitudes...), (Math.min latitudes...), (Math.max longitudes...), (Math.max latitudes...)]
@@ -303,12 +303,13 @@ postConnectionsLoad = ->
 
 addConnection = (connection, length) ->
   $.getJSON pleiadesURL(connection), (result) ->
+    result.reprPoint = result.features[0].geometry.coordinates
     itinerary_connections.push result
     $('#load-progress').attr('style',"width: #{(itinerary_connections.length / length)*100}%;")
     if itinerary_connections.length == length
       postConnectionsLoad()
 
-$(document).ready ->  
+$(document).ready ->
   davis_app.start()
   if window.location.hash
     Davis.location.assign(new Davis.Request("#{window.location.pathname}#{window.location.hash}"))

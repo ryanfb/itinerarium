@@ -16,6 +16,9 @@
       title: "Hadrian's Wall (milecastles and turrets only)",
       path: "hadrian_partial"
     }, {
+      title: "Itinerarium Burdigalense",
+      path: "bordeaux"
+    }, {
       title: "Vicarello Beaker 1",
       path: "vicarello_1"
     }, {
@@ -457,6 +460,7 @@
 
   addConnection = function(connection, length) {
     return $.getJSON(pleiadesURL(connection), function(result) {
+      result.reprPoint = result.features[0].geometry.coordinates;
       itinerary_connections.push(result);
       $('#load-progress').attr('style', "width: " + ((itinerary_connections.length / length) * 100) + "%;");
       if (itinerary_connections.length === length) {
