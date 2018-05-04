@@ -216,7 +216,7 @@
       success: function(data) {
         var photo, _i, _len, _ref, _results;
         $("" + selector + " .spinner").remove();
-        if ((data.data != null) && (data.data.length === 0)) {
+        if ((data.data != null) || (data.data.length === 0)) {
           return $('<p/>').text('No results found.').appendTo(selector);
         } else {
           _ref = data.data;

@@ -138,7 +138,7 @@ instagramSearch = (lat, long, distance = 1000, selector = '.container') ->
     crossDomain: true
     success: (data) ->
       $("#{selector} .spinner").remove()
-      if (data.data?) and (data.data.length == 0)
+      if (data.data?) or (data.data.length == 0)
         $('<p/>').text('No results found.').appendTo(selector)
       else
         $('<a/>').attr('href',photo.link).attr('target','_blank').append($('<img/>').attr('src',photo.images.thumbnail.url)).appendTo(selector) for photo in data.data
